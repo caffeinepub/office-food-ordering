@@ -50,7 +50,11 @@ function MainApp() {
   const handleToggle = (item: MenuItem) => {
     setCart((prev) => {
       const exists = prev.find((ci) => ci.item.id === item.id);
-      if (exists) return prev.filter((ci) => ci.item.id !== item.id);
+      if (exists) {
+        return prev.map((ci) =>
+          ci.item.id === item.id ? { ...ci, quantity: ci.quantity + 1 } : ci,
+        );
+      }
       return [...prev, { item, quantity: 1 }];
     });
   };
