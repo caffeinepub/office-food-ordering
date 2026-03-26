@@ -1,0 +1,55 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Page bg: very light cool gray #F3F6FA */
+    --background: 0.965 0.008 240;
+    /* Card white */
+    --card: 1 0 0;
+    --card-foreground: 0.13 0.04 265;
+    /* Deep navy #0B1B3A */
+    --foreground: 0.13 0.04 265;
+    /* Muted gray #6B7280 */
+    --muted: 0.96 0.005 240;
+    --muted-foreground: 0.5 0.02 255;
+    /* Primary dark indigo #1E3A8A */
+    --primary: 0.32 0.12 265;
+    --primary-foreground: 1 0 0;
+    /* Orange accent #F97316 */
+    --accent: 0.7 0.19 50;
+    --accent-foreground: 1 0 0;
+    /* Secondary */
+    --secondary: 0.94 0.01 255;
+    --secondary-foreground: 0.32 0.12 265;
+    /* Border #E5E7EB */
+    --border: 0.91 0.008 250;
+    --input: 0.91 0.008 250;
+    --ring: 0.32 0.12 265;
+    --radius: 0.75rem;
+    /* Popover */
+    --popover: 1 0 0;
+    --popover-foreground: 0.13 0.04 265;
+    /* Destructive */
+    --destructive: 0.55 0.22 25;
+    --destructive-foreground: 1 0 0;
+    /* Chart */
+    --chart-1: 0.32 0.12 265;
+    --chart-2: 0.7 0.19 50;
+    --chart-3: 0.5 0.18 300;
+    --chart-4: 0.6 0.2 170;
+    --chart-5: 0.55 0.22 25;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  }
+}
