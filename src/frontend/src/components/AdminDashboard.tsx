@@ -19,13 +19,19 @@ import { useActor } from "../hooks/useActor";
 const ADMIN_PIN = "admin2024";
 const STORAGE_KEY = "bonkersbites_admin_auth";
 
-function formatTime(timestamp: bigint): string {
+function formatDateTime(timestamp: bigint): string {
   const date = new Date(Number(timestamp / 1_000_000n));
+  const datePart = date.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
   let hours = date.getHours();
   const minutes = date.getMinutes();
   const ampm = hours >= 12 ? "PM" : "AM";
   hours = hours % 12 || 12;
-  return `${hours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+  const timePart = `${hours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+  return `${datePart}, ${timePart}`;
 }
 
 function getDateKey(timestamp: bigint): string {
@@ -528,12 +534,12 @@ export function AdminDashboard() {
                           </p>
                         </div>
 
-                        {/* Time + amount */}
-                        <div className="flex flex-col items-end gap-1 shrink-0">
+                        {/* DateTime + amount */}
+                        <div className="flex flex-col items-end gap-1 shrink-0 max-w-[160px]">
                           <div className="flex items-center gap-1 text-primary">
-                            <Clock className="w-3.5 h-3.5" />
-                            <span className="text-sm font-medium">
-                              {formatTime(order.timestamp)}
+                            <Clock className="w-3.5 h-3.5 shrink-0" />
+                            <span className="text-xs font-medium text-right leading-tight">
+                              {formatDateTime(order.timestamp)}
                             </span>
                           </div>
                           <span className="text-xs font-medium text-muted-foreground">
