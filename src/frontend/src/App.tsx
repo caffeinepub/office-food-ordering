@@ -1,4 +1,4 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ChefHat, ShoppingCart } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
@@ -28,6 +28,7 @@ export default function App() {
 
 function MainApp() {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [activeTab, setActiveTab] = useState<string>("breakfast");
   const [form, setForm] = useState<OrderForm>({
     name: "",
     department: "",
@@ -161,45 +162,26 @@ function MainApp() {
 
       {/* Hero */}
       <section className="bg-primary text-primary-foreground">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-10 grid md:grid-cols-2 gap-6 items-center">
-          <div>
-            <motion.h1
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight"
-            >
-              Fresh food,
-              <br />
-              delivered to your desk.
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-              className="mt-2 text-sm text-primary-foreground/80 max-w-sm"
-            >
-              Browse our daily menu, place your order, and enjoy a hot meal at
-              your workspace.
-            </motion.p>
-          </div>
-          <div className="hidden md:flex gap-3 justify-end">
-            <img
-              src="/assets/generated/breakfast-spread.dim_400x280.jpg"
-              alt="Breakfast"
-              className="w-32 h-24 object-cover rounded-xl opacity-90"
-            />
-            <img
-              src="/assets/generated/lunch-thali.dim_400x280.jpg"
-              alt="Lunch"
-              className="w-32 h-24 object-cover rounded-xl opacity-90"
-            />
-            <img
-              src="/assets/generated/snacks-spread.dim_400x280.jpg"
-              alt="Snacks"
-              className="w-32 h-24 object-cover rounded-xl opacity-90"
-            />
-          </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-10">
+          <motion.h1
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight"
+          >
+            Fresh food,
+            <br />
+            delivered to your desk.
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="mt-2 text-sm text-primary-foreground/80 max-w-sm"
+          >
+            Browse our daily menu, place your order, and enjoy a hot meal at
+            your workspace.
+          </motion.p>
         </div>
       </section>
 
@@ -208,22 +190,35 @@ function MainApp() {
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Menu Column */}
           <div className="flex-1 min-w-0">
-            <Tabs defaultValue="breakfast">
-              <TabsList
-                className="bg-transparent border-b border-border rounded-none w-full justify-start gap-0 h-auto p-0 mb-5"
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              {/* Category Tabs */}
+              <div
+                className="flex border-b border-border mb-6"
                 data-ocid="menu.tab"
               >
-                {CATEGORIES.map((cat) => (
-                  <TabsTrigger
-                    key={cat.key}
-                    value={cat.key}
-                    className="px-4 py-2.5 text-sm font-medium text-muted-foreground rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-                    data-ocid={`menu.${cat.key}.tab`}
-                  >
-                    {cat.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
+                {CATEGORIES.map((cat) => {
+                  const isActive = activeTab === cat.key;
+                  return (
+                    <button
+                      key={cat.key}
+                      type="button"
+                      onClick={() => setActiveTab(cat.key)}
+                      data-ocid={`menu.${cat.key}.tab`}
+                      className={[
+                        "relative px-5 py-3 text-sm font-medium transition-colors duration-150 focus:outline-none whitespace-nowrap",
+                        isActive
+                          ? "text-primary"
+                          : "text-muted-foreground hover:text-foreground",
+                      ].join(" ")}
+                    >
+                      {cat.label}
+                      {isActive && (
+                        <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
 
               {CATEGORIES.map((cat) => (
                 <TabsContent key={cat.key} value={cat.key} className="mt-0">

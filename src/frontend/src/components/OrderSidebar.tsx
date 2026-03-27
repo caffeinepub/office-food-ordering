@@ -213,38 +213,33 @@ export function OrderSidebar({
         </div>
 
         {/* UPI Info */}
-        <div className="bg-white rounded-lg border border-amber-200 p-3 mb-3">
-          <p className="text-xs text-amber-700 font-medium mb-0.5">Pay to</p>
-          <p className="text-sm font-bold text-amber-900">Pawan Verma</p>
-          <p className="text-xs text-amber-700 mt-1 break-all">
-            UPI: pawanjnvverma2003@okicici
+        <div className="bg-white rounded-lg border border-amber-200 p-3 mb-3 text-center">
+          <p className="text-sm font-bold text-amber-900">
+            Pay via UPI to Sanjay
+          </p>
+          <p className="text-xs text-amber-700 mt-1 break-all font-medium">
+            UPI ID: sanjayshegar1990@okaxis
           </p>
         </div>
 
-        {/* Pay text */}
-        <p className="text-sm font-medium text-amber-800 text-center mb-3">
-          Pay via UPI to Pawan Verma
-          <br />
-          <span className="text-xs font-normal break-all">
-            (pawanjnvverma2003@okicici)
-          </span>
-        </p>
-
         {/* QR Code */}
-        <div className="flex justify-center mb-3">
+        <div className="flex flex-col items-center mb-3 gap-2">
           {!qrError ? (
             <img
-              src="/assets/uploads/image-019d2580-69bd-711e-b3ba-c11b9409babc-1.png"
-              alt="UPI QR Code - Scan to pay Pawan Verma"
-              className="w-40 h-40 object-contain rounded-lg border border-amber-200 bg-white p-1"
+              src="/assets/uploads/image-019d2ef5-6746-75cb-a591-1a2c5696ec85-1.png"
+              alt="UPI QR Code - Scan to pay Sanjay"
+              className="w-56 h-56 object-contain rounded-lg border border-amber-200 bg-white p-2"
               onError={() => setQrError(true)}
             />
           ) : (
-            <div className="w-40 h-40 rounded-lg border-2 border-dashed border-amber-300 bg-white flex flex-col items-center justify-center gap-1">
-              <Smartphone className="w-8 h-8 text-amber-300" />
+            <div className="w-56 h-56 rounded-lg border-2 border-dashed border-amber-300 bg-white flex flex-col items-center justify-center gap-1">
+              <Smartphone className="w-10 h-10 text-amber-300" />
               <p className="text-xs text-amber-400 text-center px-2">QR Code</p>
             </div>
           )}
+          <p className="text-xs text-amber-700 font-medium text-center">
+            Scan to pay with any UPI app
+          </p>
         </div>
 
         {/* Amount */}
