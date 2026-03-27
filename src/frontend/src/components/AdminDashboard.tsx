@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import {
+  CalendarDays,
   ClipboardList,
   Clock,
   Lock,
@@ -27,12 +28,44 @@ function formatTime(timestamp: bigint): string {
   return `${hours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
 }
 
-function formatDate(timestamp: bigint): string {
+function getDateKey(timestamp: bigint): string {
   const date = new Date(Number(timestamp / 1_000_000n));
-  return date.toLocaleDateString("en-IN", {
+  const y = date.getFullYear();
+  const m = (date.getMonth() + 1).toString().padStart(2, "0");
+  const d = date.getDate().toString().padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function getTodayKey(): string {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = (now.getMonth() + 1).toString().padStart(2, "0");
+  const d = now.getDate().toString().padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function getYesterdayKey(): string {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  const y = d.getFullYear();
+  const m = (d.getMonth() + 1).toString().padStart(2, "0");
+  const day = d.getDate().toString().padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function formatDateHeading(dateKey: string): string {
+  const [y, m, d] = dateKey.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  const formatted = date.toLocaleDateString("en-IN", {
     day: "numeric",
-    month: "short",
+    month: "long",
+    year: "numeric",
   });
+  const today = getTodayKey();
+  const yesterday = getYesterdayKey();
+  if (dateKey === today) return `📅 Today · ${formatted}`;
+  if (dateKey === yesterday) return `📅 Yesterday · ${formatted}`;
+  return `📅 ${formatted}`;
 }
 
 function formatItems(items: Order["items"]): string {
@@ -50,6 +83,28 @@ function buildSummary(orders: Order[]): { name: string; qty: number }[] {
   return Array.from(map.entries())
     .map(([name, qty]) => ({ name, qty }))
     .sort((a, b) => b.qty - a.qty);
+}
+
+type FilterMode = "all" | "today" | "yesterday" | "custom";
+
+function groupOrdersByDate(
+  orders: Order[],
+): { dateKey: string; orders: Order[] }[] {
+  const map = new Map<string, Order[]>();
+  for (const order of orders) {
+    const key = getDateKey(order.timestamp);
+    const group = map.get(key) ?? [];
+    group.push(order);
+    map.set(key, group);
+  }
+  // Sort dates descending
+  const sortedKeys = Array.from(map.keys()).sort((a, b) => (a > b ? -1 : 1));
+  return sortedKeys.map((dateKey) => ({
+    dateKey,
+    orders: (map.get(dateKey) ?? []).sort((a, b) =>
+      b.timestamp > a.timestamp ? 1 : b.timestamp < a.timestamp ? -1 : 0,
+    ),
+  }));
 }
 
 function AdminLoginGate({ onLogin }: { onLogin: () => void }) {
@@ -124,6 +179,8 @@ export function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(
     () => sessionStorage.getItem(STORAGE_KEY) === "true",
   );
+  const [filterMode, setFilterMode] = useState<FilterMode>("all");
+  const [customDate, setCustomDate] = useState<string>("");
 
   const { data: orders, isLoading } = useQuery<Order[]>({
     queryKey: ["admin-orders"],
@@ -151,7 +208,36 @@ export function AdminDashboard() {
 
   const currentYear = new Date().getFullYear();
   const loading = isLoading || actorLoading;
-  const summary = orders && orders.length > 0 ? buildSummary(orders) : [];
+  const allOrders = orders ?? [];
+  const summary = allOrders.length > 0 ? buildSummary(allOrders) : [];
+
+  // Filtering
+  const todayKey = getTodayKey();
+  const yesterdayKey = getYesterdayKey();
+  let filteredOrders: Order[];
+  if (filterMode === "today") {
+    filteredOrders = allOrders.filter(
+      (o) => getDateKey(o.timestamp) === todayKey,
+    );
+  } else if (filterMode === "yesterday") {
+    filteredOrders = allOrders.filter(
+      (o) => getDateKey(o.timestamp) === yesterdayKey,
+    );
+  } else if (filterMode === "custom" && customDate) {
+    filteredOrders = allOrders.filter(
+      (o) => getDateKey(o.timestamp) === customDate,
+    );
+  } else {
+    filteredOrders = allOrders;
+  }
+
+  const groupedOrders = groupOrdersByDate(filteredOrders);
+  const mostRecentKey =
+    allOrders.length > 0
+      ? `${allOrders[0].name}-${allOrders[0].timestamp}`
+      : null;
+
+  const isFiltered = filterMode !== "all";
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -193,24 +279,81 @@ export function AdminDashboard() {
 
       <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-6">
         {/* Stats bar */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-5">
           <div>
             <h1 className="text-xl font-bold text-foreground">All Orders</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
-              Sorted by latest time
+              {isFiltered && !loading
+                ? `Showing ${filteredOrders.length} of ${allOrders.length} orders`
+                : "Sorted by latest time"}
             </p>
           </div>
-          {!loading && orders && (
+          {!loading && allOrders.length > 0 && (
             <div className="flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-xl">
               <Package className="w-4 h-4" />
               <span className="text-sm font-semibold">
-                {orders.length} {orders.length === 1 ? "Order" : "Orders"}
+                {isFiltered ? filteredOrders.length : allOrders.length}{" "}
+                {(isFiltered ? filteredOrders.length : allOrders.length) === 1
+                  ? "Order"
+                  : "Orders"}
               </span>
             </div>
           )}
         </div>
 
-        {/* Item Summary Section */}
+        {/* Filter bar */}
+        {!loading && (
+          <div className="mb-5" data-ocid="orders.filter.panel">
+            <div className="flex flex-wrap gap-2">
+              {(["all", "today", "yesterday", "custom"] as FilterMode[]).map(
+                (mode) => {
+                  const labels: Record<FilterMode, string> = {
+                    all: "All Orders",
+                    today: "Today",
+                    yesterday: "Yesterday",
+                    custom: "Custom Date",
+                  };
+                  const isActive = filterMode === mode;
+                  return (
+                    <button
+                      type="button"
+                      key={mode}
+                      onClick={() => setFilterMode(mode)}
+                      className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                        isActive
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background text-muted-foreground border-border hover:border-primary/40 hover:text-foreground"
+                      }`}
+                      data-ocid={`orders.filter.${mode}.tab`}
+                    >
+                      {labels[mode]}
+                    </button>
+                  );
+                },
+              )}
+            </div>
+            {filterMode === "custom" && (
+              <div className="mt-3 flex items-center gap-2">
+                <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                <input
+                  type="date"
+                  value={customDate}
+                  onChange={(e) => setCustomDate(e.target.value)}
+                  max={todayKey}
+                  className="px-3 py-1.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  data-ocid="orders.filter.custom.input"
+                />
+                {customDate && (
+                  <span className="text-xs text-muted-foreground">
+                    {formatDateHeading(customDate).replace("📅 ", "")}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Item Summary Section — always uses ALL orders */}
         {!loading && summary.length > 0 && (
           <div
             className="mb-6 bg-card border border-border rounded-xl p-4"
@@ -225,7 +368,7 @@ export function AdminDashboard() {
                 <div
                   key={name}
                   className="flex items-center justify-between bg-primary/5 border border-primary/10 rounded-lg px-3 py-2"
-                  data-ocid={`summary.item.${name}`}
+                  data-ocid="summary.item.card"
                 >
                   <span className="text-sm text-foreground font-medium truncate mr-2">
                     {name}
@@ -271,8 +414,8 @@ export function AdminDashboard() {
           </div>
         )}
 
-        {/* Empty state */}
-        {!loading && orders && orders.length === 0 && (
+        {/* Empty state — no orders at all */}
+        {!loading && allOrders.length === 0 && (
           <div
             className="flex flex-col items-center justify-center py-20 text-center"
             data-ocid="orders.empty_state"
@@ -290,59 +433,116 @@ export function AdminDashboard() {
           </div>
         )}
 
-        {/* Orders list */}
-        {!loading && orders && orders.length > 0 && (
-          <div className="space-y-2" data-ocid="orders.list">
-            {orders.map((order, index) => (
-              <div
-                key={`${order.name}-${order.timestamp}`}
-                className="bg-card border border-border rounded-xl px-4 py-3 flex items-start sm:items-center gap-3 hover:border-primary/30 hover:bg-primary/5 transition-colors"
-                data-ocid={`orders.item.${index + 1}`}
-              >
-                {/* Avatar */}
-                <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
-                  <span className="text-sm font-bold text-primary">
-                    {order.name.trim()[0]?.toUpperCase() ?? "?"}
+        {/* Empty state — filtered but no matches */}
+        {!loading &&
+          allOrders.length > 0 &&
+          filteredOrders.length === 0 &&
+          isFiltered && (
+            <div
+              className="flex flex-col items-center justify-center py-16 text-center"
+              data-ocid="orders.filter.empty_state"
+            >
+              <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-3">
+                <CalendarDays className="w-7 h-7 text-muted-foreground" />
+              </div>
+              <p className="text-sm font-medium text-foreground mb-1">
+                No orders found for this date.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Try selecting a different date filter.
+              </p>
+            </div>
+          )}
+
+        {/* Grouped orders list */}
+        {!loading && filteredOrders.length > 0 && (
+          <div className="space-y-6" data-ocid="orders.list">
+            {groupedOrders.map(({ dateKey, orders: dateOrders }) => (
+              <div key={dateKey}>
+                {/* Date heading */}
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="bg-muted/60 border border-border/50 rounded-full px-4 py-1">
+                    <span className="text-sm font-semibold text-foreground">
+                      {formatDateHeading(dateKey)}
+                    </span>
+                  </div>
+                  <div className="flex-1 h-px bg-border/50" />
+                  <span className="text-xs text-muted-foreground">
+                    {dateOrders.length}{" "}
+                    {dateOrders.length === 1 ? "order" : "orders"}
                   </span>
                 </div>
 
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                    <span className="font-semibold text-foreground text-sm">
-                      {order.name}
-                    </span>
-                    <span className="text-muted-foreground text-sm">→</span>
-                    <span className="text-sm text-foreground/80 truncate">
-                      {formatItems(order.items)}
-                    </span>
-                    <span className="text-muted-foreground text-sm hidden sm:inline">
-                      →
-                    </span>
-                    <span className="text-xs text-muted-foreground sm:hidden">
-                      {formatDate(order.timestamp)} · ₹
-                      {order.totalAmount.toString()}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-0.5 sm:hidden">
-                    {order.department} · {order.phone}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
-                    {order.department} · {order.phone}
-                  </p>
-                </div>
+                {/* Orders within this date */}
+                <div className="space-y-2">
+                  {dateOrders.map((order, index) => {
+                    const orderKey = `${order.name}-${order.timestamp}`;
+                    const isMostRecent = orderKey === mostRecentKey;
+                    return (
+                      <div
+                        key={orderKey}
+                        className={`bg-card border rounded-xl px-4 py-3 flex items-start sm:items-center gap-3 hover:border-primary/30 hover:bg-primary/5 transition-colors ${
+                          isMostRecent
+                            ? "border-primary/50 bg-primary/5 ring-2 ring-primary/20"
+                            : "border-border"
+                        }`}
+                        data-ocid={`orders.item.${index + 1}`}
+                      >
+                        {/* Avatar */}
+                        <div
+                          className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
+                            isMostRecent ? "bg-primary/25" : "bg-primary/15"
+                          }`}
+                        >
+                          <span className="text-sm font-bold text-primary">
+                            {order.name.trim()[0]?.toUpperCase() ?? "?"}
+                          </span>
+                        </div>
 
-                {/* Time + amount */}
-                <div className="flex flex-col items-end gap-1 shrink-0">
-                  <div className="flex items-center gap-1 text-primary">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span className="text-sm font-medium">
-                      {formatTime(order.timestamp)}
-                    </span>
-                  </div>
-                  <span className="text-xs font-medium text-muted-foreground">
-                    ₹{order.totalAmount.toString()}
-                  </span>
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                            <span className="font-semibold text-foreground text-sm">
+                              {order.name}
+                            </span>
+                            {isMostRecent && (
+                              <span className="text-xs bg-primary/15 text-primary px-1.5 py-0.5 rounded-full font-medium">
+                                Latest
+                              </span>
+                            )}
+                            <span className="text-muted-foreground text-sm">
+                              →
+                            </span>
+                            <span className="text-sm text-foreground/80 truncate">
+                              {formatItems(order.items)}
+                            </span>
+                            <span className="text-muted-foreground text-sm hidden sm:inline">
+                              →
+                            </span>
+                            <span className="text-xs text-muted-foreground sm:hidden">
+                              ₹{order.totalAmount.toString()}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {order.department} · {order.phone}
+                          </p>
+                        </div>
+
+                        {/* Time + amount */}
+                        <div className="flex flex-col items-end gap-1 shrink-0">
+                          <div className="flex items-center gap-1 text-primary">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span className="text-sm font-medium">
+                              {formatTime(order.timestamp)}
+                            </span>
+                          </div>
+                          <span className="text-xs font-medium text-muted-foreground">
+                            ₹{order.totalAmount.toString()}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ))}
