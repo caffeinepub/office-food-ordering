@@ -432,7 +432,7 @@ export function AdminDashboard() {
         )}
 
         {/* Filter bar — only shown in by-date mode */}
-        {!loading && viewMode === "by-date" && (
+        {!loading && (
           <div className="mb-5" data-ocid="orders.filter.panel">
             <div className="flex flex-wrap gap-2">
               {(["all", "today", "yesterday", "custom"] as FilterMode[]).map(
