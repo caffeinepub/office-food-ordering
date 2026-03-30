@@ -97,6 +97,7 @@ export interface Item {
 export interface Order {
     name: string;
     totalAmount: bigint;
+    restaurantName: string;
     timestamp: bigint;
     phone: string;
     items: Array<Item>;
@@ -118,7 +119,7 @@ export interface backendInterface {
     getOrders(): Promise<Array<Order>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
-    placeOrder(name: string, department: string, phone: string, items: Array<Item>, totalAmount: bigint): Promise<bigint>;
+    placeOrder(name: string, department: string, phone: string, restaurantName: string, items: Array<Item>, totalAmount: bigint): Promise<bigint>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
 }
 import type { UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
@@ -222,17 +223,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async placeOrder(arg0: string, arg1: string, arg2: string, arg3: Array<Item>, arg4: bigint): Promise<bigint> {
+    async placeOrder(arg0: string, arg1: string, arg2: string, arg3: string, arg4: Array<Item>, arg5: bigint): Promise<bigint> {
         if (this.processError) {
             try {
-                const result = await this.actor.placeOrder(arg0, arg1, arg2, arg3, arg4);
+                const result = await this.actor.placeOrder(arg0, arg1, arg2, arg3, arg4, arg5);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.placeOrder(arg0, arg1, arg2, arg3, arg4);
+            const result = await this.actor.placeOrder(arg0, arg1, arg2, arg3, arg4, arg5);
             return result;
         }
     }

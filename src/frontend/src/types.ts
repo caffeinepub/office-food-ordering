@@ -16,4 +16,16 @@ export interface OrderForm {
   name: string;
   department: string;
   phone: string;
+  restaurantName: string;
+}
+
+export interface RestaurantMenuItem {
+  id: string;
+  name: string;
+  price: number;
+}
+
+export interface RestaurantCartItem {
+  item: RestaurantMenuItem;
+  quantity: number;
 }

@@ -18,6 +18,7 @@ export interface Item {
 export interface Order {
   'name' : string,
   'totalAmount' : bigint,
+  'restaurantName' : string,
   'timestamp' : bigint,
   'phone' : string,
   'items' : Array<Item>,
@@ -36,7 +37,7 @@ export interface _SERVICE {
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'placeOrder' : ActorMethod<
-    [string, string, string, Array<Item>, bigint],
+    [string, string, string, string, Array<Item>, bigint],
     bigint
   >,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,

@@ -22,6 +22,7 @@ export const Item = IDL.Record({
 export const Order = IDL.Record({
   'name' : IDL.Text,
   'totalAmount' : IDL.Nat,
+  'restaurantName' : IDL.Text,
   'timestamp' : IDL.Int,
   'phone' : IDL.Text,
   'items' : IDL.Vec(Item),
@@ -41,7 +42,7 @@ export const idlService = IDL.Service({
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'placeOrder' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, IDL.Vec(Item), IDL.Nat],
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Vec(Item), IDL.Nat],
       [IDL.Nat],
       [],
     ),
@@ -65,6 +66,7 @@ export const idlFactory = ({ IDL }) => {
   const Order = IDL.Record({
     'name' : IDL.Text,
     'totalAmount' : IDL.Nat,
+    'restaurantName' : IDL.Text,
     'timestamp' : IDL.Int,
     'phone' : IDL.Text,
     'items' : IDL.Vec(Item),
@@ -84,7 +86,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'placeOrder' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, IDL.Vec(Item), IDL.Nat],
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Vec(Item), IDL.Nat],
         [IDL.Nat],
         [],
       ),

@@ -1,10 +1,12 @@
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, ShoppingBag, Smartphone } from "lucide-react";
 import { useState } from "react";
-import type { CartItem, OrderForm } from "../types";
+import type { CartItem, OrderForm, RestaurantCartItem } from "../types";
 
 interface OrderSidebarProps {
   cartItems: CartItem[];
+  restaurantCartItems: RestaurantCartItem[];
+  selectedRestaurant: string;
   form: OrderForm;
   onFormChange: (field: keyof OrderForm, value: string) => void;
   onSubmit: () => void;
@@ -15,6 +17,8 @@ interface OrderSidebarProps {
 
 export function OrderSidebar({
   cartItems,
+  restaurantCartItems,
+  selectedRestaurant,
   form,
   onFormChange,
   onSubmit,
@@ -26,11 +30,18 @@ export function OrderSidebar({
   const [paymentError, setPaymentError] = useState(false);
   const [qrError, setQrError] = useState(false);
 
-  const subtotal = cartItems.reduce(
+  const regularSubtotal = cartItems.reduce(
     (sum, ci) => sum + ci.item.price * ci.quantity,
     0,
   );
-  const total = subtotal;
+  const restaurantSubtotal = restaurantCartItems.reduce(
+    (sum, ci) => sum + ci.item.price * ci.quantity,
+    0,
+  );
+  const total = regularSubtotal + restaurantSubtotal;
+  const allItemCount =
+    cartItems.reduce((s, ci) => s + ci.quantity, 0) +
+    restaurantCartItems.reduce((s, ci) => s + ci.quantity, 0);
 
   const handleSubmitClick = () => {
     if (!paymentConfirmed) {
@@ -67,7 +78,8 @@ export function OrderSidebar({
             Order Summary
           </h2>
         </div>
-        {cartItems.length === 0 ? (
+
+        {allItemCount === 0 ? (
           <div className="text-center py-6" data-ocid="order.empty_state">
             <p className="text-muted-foreground text-sm">No items added yet</p>
             <p className="text-muted-foreground text-xs mt-1">
@@ -76,8 +88,17 @@ export function OrderSidebar({
           </div>
         ) : (
           <>
+            {/* Restaurant label if applicable */}
+            {selectedRestaurant && restaurantCartItems.length > 0 && (
+              <div className="mb-2">
+                <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                  🏪 {selectedRestaurant}
+                </span>
+              </div>
+            )}
+
             <div className="space-y-2 max-h-48 overflow-y-auto">
-              {cartItems.map((ci, i) => (
+              {restaurantCartItems.map((ci, i) => (
                 <div
                   key={ci.item.id}
                   className="flex justify-between items-center"
@@ -96,11 +117,33 @@ export function OrderSidebar({
                   </span>
                 </div>
               ))}
+              {cartItems.length > 0 && restaurantCartItems.length > 0 && (
+                <Separator className="my-1" />
+              )}
+              {cartItems.map((ci, i) => (
+                <div
+                  key={ci.item.id}
+                  className="flex justify-between items-center"
+                  data-ocid={`order.item.${restaurantCartItems.length + i + 1}`}
+                >
+                  <div>
+                    <span className="text-sm text-foreground font-medium">
+                      {ci.item.name}
+                    </span>
+                    <span className="text-xs text-muted-foreground ml-1">
+                      ×{ci.quantity}
+                    </span>
+                  </div>
+                  <span className="text-sm font-semibold text-foreground">
+                    ₹{ci.item.price * ci.quantity}
+                  </span>
+                </div>
+              ))}
             </div>
             <Separator className="my-3" />
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Subtotal</span>
-              <span className="text-sm text-foreground">₹{subtotal}</span>
+              <span className="text-sm text-foreground">₹{total}</span>
             </div>
             <div className="flex justify-between items-center mt-1">
               <span className="text-base font-bold text-foreground">Total</span>

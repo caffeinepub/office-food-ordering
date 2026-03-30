@@ -15,6 +15,7 @@ export interface Item {
 export interface Order {
     name: string;
     totalAmount: bigint;
+    restaurantName: string;
     timestamp: bigint;
     phone: string;
     items: Array<Item>;
@@ -35,6 +36,6 @@ export interface backendInterface {
     getOrders(): Promise<Array<Order>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
-    placeOrder(name: string, department: string, phone: string, items: Array<Item>, totalAmount: bigint): Promise<bigint>;
+    placeOrder(name: string, department: string, phone: string, restaurantName: string, items: Array<Item>, totalAmount: bigint): Promise<bigint>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
 }

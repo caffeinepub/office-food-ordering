@@ -3,42 +3,37 @@ import Array "mo:core/Array";
 import Map "mo:core/Map";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
-
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 
-
 actor {
-  type Item = {
+  public type Item = {
     itemName : Text;
     quantity : Nat;
     price : Nat;
   };
 
-  type Order = {
+  public type Order = {
     name : Text;
     department : Text;
     phone : Text;
+    restaurantName : Text;
     items : [Item];
     totalAmount : Nat;
     timestamp : Int;
   };
 
-  type UserProfile = {
+  public type UserProfile = {
     name : Text;
   };
 
-  // Initialize the access control system
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
-  // User profiles storage
   let userProfiles = Map.empty<Principal, UserProfile>();
 
-  // Stable storage for orders
-  stable var orders : [Order] = [];
+  var orders : [Order] = [];
 
-  // User profile management functions
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can access profiles");
@@ -60,22 +55,25 @@ actor {
     userProfiles.add(caller, profile);
   };
 
-  // Order management functions - no authorization required per user request
-  public shared ({ caller }) func placeOrder(name : Text, department : Text, phone : Text, items : [Item], totalAmount : Nat) : async Nat {
+  public shared func placeOrder(name : Text, department : Text, phone : Text, restaurantName : Text, items : [Item], totalAmount : Nat) : async Nat {
     let newOrder : Order = {
       name;
       department;
       phone;
+      restaurantName;
       items;
       totalAmount;
       timestamp = Time.now();
     };
 
-    orders := orders.concat([newOrder]);
+    let size = orders.size();
+    orders := Array.tabulate<Order>(size + 1, func(i) {
+      if (i < size) orders[i] else newOrder
+    });
     orders.size();
   };
 
-  public query ({ caller }) func getOrders() : async [Order] {
+  public query func getOrders() : async [Order] {
     orders;
   };
 };

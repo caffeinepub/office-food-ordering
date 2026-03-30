@@ -9,6 +9,7 @@ import {
   Lock,
   LogOut,
   Package,
+  Store,
   UtensilsCrossed,
 } from "lucide-react";
 import { useState } from "react";
@@ -74,6 +75,14 @@ function formatDateHeading(dateKey: string): string {
   return `📅 ${formatted}`;
 }
 
+function formatTodayDate(): string {
+  return new Date().toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
 function formatItems(items: Order["items"]): string {
   return items.map((it) => `${it.itemName} x${it.quantity}`).join(", ");
 }
@@ -92,6 +101,7 @@ function buildSummary(orders: Order[]): { name: string; qty: number }[] {
 }
 
 type FilterMode = "all" | "today" | "yesterday" | "custom";
+type ViewMode = "by-date" | "by-restaurant";
 
 function groupOrdersByDate(
   orders: Order[],
@@ -103,7 +113,6 @@ function groupOrdersByDate(
     group.push(order);
     map.set(key, group);
   }
-  // Sort dates descending
   const sortedKeys = Array.from(map.keys()).sort((a, b) => (a > b ? -1 : 1));
   return sortedKeys.map((dateKey) => ({
     dateKey,
@@ -111,6 +120,26 @@ function groupOrdersByDate(
       b.timestamp > a.timestamp ? 1 : b.timestamp < a.timestamp ? -1 : 0,
     ),
   }));
+}
+
+function groupOrdersByRestaurant(
+  orders: Order[],
+): { restaurant: string; orders: Order[] }[] {
+  const map = new Map<string, Order[]>();
+  for (const order of orders) {
+    const key = order.restaurantName || "General";
+    const group = map.get(key) ?? [];
+    group.push(order);
+    map.set(key, group);
+  }
+  return Array.from(map.entries())
+    .map(([restaurant, ords]) => ({
+      restaurant,
+      orders: ords.sort((a, b) =>
+        b.timestamp > a.timestamp ? 1 : b.timestamp < a.timestamp ? -1 : 0,
+      ),
+    }))
+    .sort((a, b) => b.orders.length - a.orders.length);
 }
 
 function AdminLoginGate({ onLogin }: { onLogin: () => void }) {
@@ -187,6 +216,7 @@ export function AdminDashboard() {
   );
   const [filterMode, setFilterMode] = useState<FilterMode>("all");
   const [customDate, setCustomDate] = useState<string>("");
+  const [viewMode, setViewMode] = useState<ViewMode>("by-date");
 
   const { data: orders, isLoading } = useQuery<Order[]>({
     queryKey: ["admin-orders"],
@@ -217,8 +247,15 @@ export function AdminDashboard() {
   const allOrders = orders ?? [];
   const summary = allOrders.length > 0 ? buildSummary(allOrders) : [];
 
-  // Filtering
+  // Today's summary
   const todayKey = getTodayKey();
+  const todayOrders = allOrders.filter(
+    (o) => getDateKey(o.timestamp) === todayKey,
+  );
+  const todaySummary = buildSummary(todayOrders);
+  const todayTotalItems = todaySummary.reduce((acc, { qty }) => acc + qty, 0);
+
+  // Filtering
   const yesterdayKey = getYesterdayKey();
   let filteredOrders: Order[];
   if (filterMode === "today") {
@@ -238,6 +275,7 @@ export function AdminDashboard() {
   }
 
   const groupedOrders = groupOrdersByDate(filteredOrders);
+  const groupedByRestaurant = groupOrdersByRestaurant(filteredOrders);
   const mostRecentKey =
     allOrders.length > 0
       ? `${allOrders[0].name}-${allOrders[0].timestamp}`
@@ -284,6 +322,57 @@ export function AdminDashboard() {
       </header>
 
       <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-6">
+        {/* TODAY'S ORDER SUMMARY — top of dashboard */}
+        {!loading && (
+          <div
+            className="mb-6 rounded-xl border-2 border-amber-300/60 bg-amber-50/60 dark:bg-amber-950/20 dark:border-amber-600/40 p-4"
+            data-ocid="today.summary.section"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">📋</span>
+                <h2 className="text-sm font-bold text-amber-900 dark:text-amber-200">
+                  Today's Order Summary
+                </h2>
+                <span className="text-xs text-amber-700 dark:text-amber-400 font-medium">
+                  {formatTodayDate()}
+                </span>
+              </div>
+              {todaySummary.length > 0 && (
+                <span className="text-xs bg-amber-200/70 dark:bg-amber-800/50 text-amber-800 dark:text-amber-200 px-2.5 py-1 rounded-full font-semibold">
+                  {todayTotalItems} {todayTotalItems === 1 ? "item" : "items"}{" "}
+                  today
+                </span>
+              )}
+            </div>
+            {todaySummary.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                {todaySummary.map(({ name, qty }) => (
+                  <div
+                    key={name}
+                    className="flex items-center justify-between bg-white/70 dark:bg-amber-900/30 border border-amber-200/80 dark:border-amber-700/40 rounded-lg px-3 py-2"
+                    data-ocid="today.summary.item.card"
+                  >
+                    <span className="text-sm text-amber-900 dark:text-amber-100 font-medium truncate mr-2">
+                      {name}
+                    </span>
+                    <span className="text-sm font-bold text-amber-600 dark:text-amber-400 shrink-0">
+                      = {qty}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p
+                className="text-sm text-amber-700/70 dark:text-amber-400/60 italic"
+                data-ocid="today.summary.empty_state"
+              >
+                No orders placed today yet.
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Stats bar */}
         <div className="flex items-center justify-between mb-5">
           <div>
@@ -307,8 +396,43 @@ export function AdminDashboard() {
           )}
         </div>
 
-        {/* Filter bar */}
-        {!loading && (
+        {/* View Mode Toggle */}
+        {!loading && allOrders.length > 0 && (
+          <div
+            className="flex items-center gap-1 p-1 bg-muted rounded-xl mb-5 w-fit"
+            data-ocid="admin.view.toggle"
+          >
+            <button
+              type="button"
+              onClick={() => setViewMode("by-date")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                viewMode === "by-date"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              data-ocid="admin.view.date.tab"
+            >
+              <CalendarDays className="w-3.5 h-3.5" />
+              By Date
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("by-restaurant")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                viewMode === "by-restaurant"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              data-ocid="admin.view.restaurant.tab"
+            >
+              <Store className="w-3.5 h-3.5" />
+              By Restaurant
+            </button>
+          </div>
+        )}
+
+        {/* Filter bar — only shown in by-date mode */}
+        {!loading && viewMode === "by-date" && (
           <div className="mb-5" data-ocid="orders.filter.panel">
             <div className="flex flex-wrap gap-2">
               {(["all", "today", "yesterday", "custom"] as FilterMode[]).map(
@@ -325,12 +449,12 @@ export function AdminDashboard() {
                       type="button"
                       key={mode}
                       onClick={() => setFilterMode(mode)}
-                      className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                         isActive
                           ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-background text-muted-foreground border-border hover:border-primary/40 hover:text-foreground"
+                          : "bg-card text-muted-foreground border-border hover:text-foreground hover:border-primary/40"
                       }`}
-                      data-ocid={`orders.filter.${mode}.tab`}
+                      data-ocid={`orders.filter.${mode}.button`}
                     >
                       {labels[mode]}
                     </button>
@@ -339,14 +463,12 @@ export function AdminDashboard() {
               )}
             </div>
             {filterMode === "custom" && (
-              <div className="mt-3 flex items-center gap-2">
-                <CalendarDays className="w-4 h-4 text-muted-foreground" />
+              <div className="flex items-center gap-3 mt-3">
                 <input
                   type="date"
                   value={customDate}
                   onChange={(e) => setCustomDate(e.target.value)}
-                  max={todayKey}
-                  className="px-3 py-1.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  className="px-3 py-1.5 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
                   data-ocid="orders.filter.custom.input"
                 />
                 {customDate && (
@@ -359,7 +481,7 @@ export function AdminDashboard() {
           </div>
         )}
 
-        {/* Item Summary Section — always uses ALL orders */}
+        {/* All-Time Item Summary Section — always uses ALL orders */}
         {!loading && summary.length > 0 && (
           <div
             className="mb-6 bg-card border border-border rounded-xl p-4"
@@ -367,7 +489,7 @@ export function AdminDashboard() {
           >
             <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
               <UtensilsCrossed className="w-4 h-4 text-primary" />
-              Item Summary
+              All-Time Item Summary
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
               {summary.map(({ name, qty }) => (
@@ -460,8 +582,8 @@ export function AdminDashboard() {
             </div>
           )}
 
-        {/* Grouped orders list */}
-        {!loading && filteredOrders.length > 0 && (
+        {/* BY DATE view */}
+        {!loading && filteredOrders.length > 0 && viewMode === "by-date" && (
           <div className="space-y-6" data-ocid="orders.list">
             {groupedOrders.map(({ dateKey, orders: dateOrders }) => (
               <div key={dateKey}>
@@ -478,75 +600,18 @@ export function AdminDashboard() {
                     {dateOrders.length === 1 ? "order" : "orders"}
                   </span>
                 </div>
-
-                {/* Orders within this date */}
                 <div className="space-y-2">
                   {dateOrders.map((order, index) => {
                     const orderKey = `${order.name}-${order.timestamp}`;
                     const isMostRecent = orderKey === mostRecentKey;
                     return (
-                      <div
+                      <OrderCard
                         key={orderKey}
-                        className={`bg-card border rounded-xl px-4 py-3 flex items-start sm:items-center gap-3 hover:border-primary/30 hover:bg-primary/5 transition-colors ${
-                          isMostRecent
-                            ? "border-primary/50 bg-primary/5 ring-2 ring-primary/20"
-                            : "border-border"
-                        }`}
-                        data-ocid={`orders.item.${index + 1}`}
-                      >
-                        {/* Avatar */}
-                        <div
-                          className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
-                            isMostRecent ? "bg-primary/25" : "bg-primary/15"
-                          }`}
-                        >
-                          <span className="text-sm font-bold text-primary">
-                            {order.name.trim()[0]?.toUpperCase() ?? "?"}
-                          </span>
-                        </div>
-
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                            <span className="font-semibold text-foreground text-sm">
-                              {order.name}
-                            </span>
-                            {isMostRecent && (
-                              <span className="text-xs bg-primary/15 text-primary px-1.5 py-0.5 rounded-full font-medium">
-                                Latest
-                              </span>
-                            )}
-                            <span className="text-muted-foreground text-sm">
-                              →
-                            </span>
-                            <span className="text-sm text-foreground/80 truncate">
-                              {formatItems(order.items)}
-                            </span>
-                            <span className="text-muted-foreground text-sm hidden sm:inline">
-                              →
-                            </span>
-                            <span className="text-xs text-muted-foreground sm:hidden">
-                              ₹{order.totalAmount.toString()}
-                            </span>
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {order.department} · {order.phone}
-                          </p>
-                        </div>
-
-                        {/* DateTime + amount */}
-                        <div className="flex flex-col items-end gap-1 shrink-0 max-w-[160px]">
-                          <div className="flex items-center gap-1 text-primary">
-                            <Clock className="w-3.5 h-3.5 shrink-0" />
-                            <span className="text-xs font-medium text-right leading-tight">
-                              {formatDateTime(order.timestamp)}
-                            </span>
-                          </div>
-                          <span className="text-xs font-medium text-muted-foreground">
-                            ₹{order.totalAmount.toString()}
-                          </span>
-                        </div>
-                      </div>
+                        order={order}
+                        index={index}
+                        isMostRecent={isMostRecent}
+                        showRestaurant
+                      />
                     );
                   })}
                 </div>
@@ -554,6 +619,74 @@ export function AdminDashboard() {
             ))}
           </div>
         )}
+
+        {/* BY RESTAURANT view */}
+        {!loading &&
+          filteredOrders.length > 0 &&
+          viewMode === "by-restaurant" && (
+            <div className="space-y-8" data-ocid="orders.restaurant.list">
+              {groupedByRestaurant.map(({ restaurant, orders: restOrders }) => {
+                const restSummary = buildSummary(restOrders);
+                return (
+                  <div key={restaurant}>
+                    {/* Restaurant heading */}
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="flex items-center gap-1.5 bg-primary/10 border border-primary/20 rounded-full px-4 py-1">
+                        <Store className="w-3.5 h-3.5 text-primary" />
+                        <span className="text-sm font-semibold text-primary">
+                          {restaurant}
+                        </span>
+                      </div>
+                      <div className="flex-1 h-px bg-border/50" />
+                      <span className="text-xs text-muted-foreground">
+                        {restOrders.length}{" "}
+                        {restOrders.length === 1 ? "order" : "orders"}
+                      </span>
+                    </div>
+
+                    {/* Orders for this restaurant */}
+                    <div className="space-y-2 mb-3">
+                      {restOrders.map((order, index) => (
+                        <OrderCard
+                          key={`${order.name}-${order.timestamp}`}
+                          order={order}
+                          index={index}
+                          isMostRecent={
+                            `${order.name}-${order.timestamp}` === mostRecentKey
+                          }
+                          showRestaurant={false}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Per-restaurant item summary */}
+                    {restSummary.length > 0 && (
+                      <div className="bg-muted/40 border border-border/60 rounded-xl p-3">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                          Item Summary — {restaurant}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {restSummary.map(({ name, qty }) => (
+                            <div
+                              key={name}
+                              className="flex items-center gap-1.5 bg-card border border-border rounded-lg px-2.5 py-1"
+                            >
+                              <span className="text-xs text-foreground font-medium">
+                                {name}
+                              </span>
+                              <span className="text-xs font-bold text-primary">
+                                ×{qty}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
       </main>
 
       {/* Footer */}
@@ -572,6 +705,87 @@ export function AdminDashboard() {
           </p>
         </div>
       </footer>
+    </div>
+  );
+}
+
+function OrderCard({
+  order,
+  index,
+  isMostRecent,
+  showRestaurant,
+}: {
+  order: Order;
+  index: number;
+  isMostRecent: boolean;
+  showRestaurant: boolean;
+}) {
+  return (
+    <div
+      className={`bg-card border rounded-xl px-4 py-3 flex items-start sm:items-center gap-3 hover:border-primary/30 hover:bg-primary/5 transition-colors ${
+        isMostRecent
+          ? "border-primary/50 bg-primary/5 ring-2 ring-primary/20"
+          : "border-border"
+      }`}
+      data-ocid={`orders.item.${index + 1}`}
+    >
+      {/* Avatar */}
+      <div
+        className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
+          isMostRecent ? "bg-primary/25" : "bg-primary/15"
+        }`}
+      >
+        <span className="text-sm font-bold text-primary">
+          {order.name.trim()[0]?.toUpperCase() ?? "?"}
+        </span>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <span className="font-semibold text-foreground text-sm">
+            {order.name}
+          </span>
+          {isMostRecent && (
+            <span className="text-xs bg-primary/15 text-primary px-1.5 py-0.5 rounded-full font-medium">
+              Latest
+            </span>
+          )}
+          {showRestaurant &&
+            order.restaurantName &&
+            order.restaurantName !== "General" && (
+              <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">
+                🏪 {order.restaurantName}
+              </span>
+            )}
+          <span className="text-muted-foreground text-sm">→</span>
+          <span className="text-sm text-foreground/80 truncate">
+            {formatItems(order.items)}
+          </span>
+          <span className="text-muted-foreground text-sm hidden sm:inline">
+            →
+          </span>
+          <span className="text-xs text-muted-foreground sm:hidden">
+            ₹{order.totalAmount.toString()}
+          </span>
+        </div>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          {order.department} · {order.phone}
+        </p>
+      </div>
+
+      {/* DateTime + amount */}
+      <div className="flex flex-col items-end gap-1 shrink-0 max-w-[160px]">
+        <div className="flex items-center gap-1 text-primary">
+          <Clock className="w-3.5 h-3.5 shrink-0" />
+          <span className="text-xs font-medium text-right leading-tight">
+            {formatDateTime(order.timestamp)}
+          </span>
+        </div>
+        <span className="text-xs font-medium text-muted-foreground">
+          ₹{order.totalAmount.toString()}
+        </span>
+      </div>
     </div>
   );
 }
