@@ -126,7 +126,12 @@ export const menuItems: MenuItem[] = [
   },
 ];
 
-export const RESTAURANTS = ["Ruchi Cafe", "Anna Cafe", "Local Shop"] as const;
+export const RESTAURANTS = [
+  "Ruchi Cafe",
+  "Anna Cafe",
+  "Local Shop",
+  "Babu's Classic",
+] as const;
 export type RestaurantName = (typeof RESTAURANTS)[number];
 
 export const restaurantMenus: Record<
@@ -226,6 +231,29 @@ export const restaurantMenus: Record<
     { id: "ls-28", name: "Veg Uttappa", price: 100 },
     { id: "ls-29", name: "Idli (2 pcs)", price: 30 },
     { id: "ls-30", name: "Medu Vada (2 pcs)", price: 40 },
+  ],
+  "Babu's Classic": [
+    // Sandwiches
+    { id: "bc-1", name: "Veg Sandwich", price: 50 },
+    { id: "bc-2", name: "Masala Toast Sandwich", price: 50 },
+    { id: "bc-3", name: "Bread Butter Toast", price: 50 },
+    { id: "bc-4", name: "Veg Three Slice Sandwich", price: 65 },
+    { id: "bc-5", name: "Veg Cheese Sandwich", price: 90 },
+    // Pizzas
+    { id: "bc-6", name: "Veg Cheese Pizza", price: 140 },
+    { id: "bc-7", name: "Veg Masala Pizza", price: 150 },
+    { id: "bc-8", name: "Chilly Corn Pizza", price: 160 },
+    { id: "bc-9", name: "Mushroom Pizza", price: 170 },
+    { id: "bc-10", name: "Veg Paneer Pizza", price: 180 },
+    // Grill Sandwiches
+    { id: "bc-11", name: "Veg Grill Sandwich", price: 140 },
+    { id: "bc-12", name: "Paneer Cheese Grill Sandwich", price: 180 },
+    { id: "bc-13", name: "Samosa Veg Sandwich", price: 70 },
+    { id: "bc-14", name: "Samosa Toast Sandwich", price: 70 },
+    // Burgers
+    { id: "bc-15", name: "Veg Burger", price: 70 },
+    { id: "bc-16", name: "Veg Cheese Burger", price: 80 },
+    { id: "bc-17", name: "Schezwan Cheese Burger", price: 90 },
   ],
 };
 
