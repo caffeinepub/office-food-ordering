@@ -18,23 +18,25 @@ export function MenuItemCard({
 
   return (
     <div
-      className={`group bg-card rounded-2xl border overflow-hidden shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-[transform,box-shadow,border-color] duration-300 cursor-pointer ${
+      className={[
+        "group bg-card rounded-2xl border overflow-hidden",
+        "hover:-translate-y-2 hover:border-primary/30 transition-all duration-300 ease-out cursor-pointer",
         isSelected
-          ? "border-accent ring-1 ring-accent/30"
-          : "border-border hover:border-accent/40"
-      }`}
+          ? "border-accent ring-2 ring-accent/25 shadow-card-hover"
+          : "border-border shadow-card hover:shadow-card-hover",
+      ].join(" ")}
       data-ocid={`menu.item.${item.id}`}
     >
-      <div className="relative h-32 overflow-hidden bg-muted">
+      <div className="relative h-36 overflow-hidden bg-muted">
         <img
           src={item.image}
           alt={item.name}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 ease-out"
         />
         {isSelected && (
-          <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-accent flex items-center justify-center">
+          <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-accent flex items-center justify-center shadow-sm">
             <svg
-              className="w-3 h-3 text-white"
+              className="w-3.5 h-3.5 text-white"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -51,14 +53,17 @@ export function MenuItemCard({
           </div>
         )}
       </div>
+
       <div className="p-4">
-        <h3 className="font-display font-semibold text-sm text-foreground leading-tight mb-1.5">
+        <h3 className="font-display font-semibold text-sm text-foreground leading-tight mb-1.5 min-h-[2.5rem] line-clamp-2">
           {item.name}
         </h3>
-        <p className="text-xs text-muted-foreground leading-snug mb-3">
-          {item.description}
-        </p>
-        <div className="flex items-center justify-between">
+        {item.description && (
+          <p className="text-xs text-muted-foreground leading-snug mb-2 line-clamp-1">
+            {item.description}
+          </p>
+        )}
+        <div className="flex items-center justify-between mt-2">
           <span className="font-display font-bold text-base text-accent">
             ₹{item.price}
           </span>
@@ -67,12 +72,12 @@ export function MenuItemCard({
               <button
                 type="button"
                 onClick={() => onQtyChange(item.id, -1)}
-                className="w-7 h-7 rounded-full border border-border flex items-center justify-center hover:bg-muted active:scale-95 transition-all duration-150"
+                className="w-7 h-7 rounded-full border-2 border-border flex items-center justify-center hover:bg-muted hover:border-primary/40 active:scale-95 transition-all duration-150"
                 data-ocid={`menu.item.${item.id}.toggle`}
               >
                 <Minus className="w-3 h-3 text-foreground" />
               </button>
-              <span className="w-6 text-center text-sm font-semibold text-foreground">
+              <span className="w-6 text-center text-sm font-bold text-foreground">
                 {cartItem.quantity}
               </span>
               <button
@@ -88,7 +93,7 @@ export function MenuItemCard({
             <button
               type="button"
               onClick={() => onToggle(item)}
-              className="rounded-full bg-accent text-accent-foreground px-4 py-2 text-xs font-bold hover:brightness-110 active:scale-95 transition-all duration-150"
+              className="rounded-full bg-accent text-white px-4 py-2 text-xs font-bold hover:brightness-110 hover:shadow-md active:scale-95 transition-all duration-150"
               data-ocid={`menu.item.${item.id}.button`}
             >
               Add

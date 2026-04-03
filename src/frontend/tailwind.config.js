@@ -5,8 +5,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Figtree', 'system-ui', 'sans-serif'],
-        display: ['Bricolage Grotesque', 'system-ui', 'sans-serif'],
+        sans: ["Figtree", "system-ui", "sans-serif"],
+        display: ["Bricolage Grotesque", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "ui-monospace", "monospace"],
       },
       colors: {
         background: "oklch(var(--background))",
@@ -60,11 +61,16 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        xl: "calc(var(--radius) + 2px)",
+        "2xl": "calc(var(--radius) + 6px)",
+        "3xl": "calc(var(--radius) + 14px)",
       },
       boxShadow: {
+        "soft": "var(--shadow-soft)",
         "card": "0 1px 4px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.04)",
-        "card-hover": "0 6px 20px 0 rgba(0,0,0,0.10), 0 2px 6px -2px rgba(0,0,0,0.06)",
+        "card-hover": "0 8px 24px 0 rgba(0,0,0,0.12), 0 2px 8px -2px rgba(0,0,0,0.06)",
         "elevated": "0 8px 32px 0 rgba(0,0,0,0.10), 0 2px 8px -2px rgba(0,0,0,0.06)",
+        "header": "0 2px 12px 0 rgba(30, 58, 138, 0.08), 0 1px 3px 0 rgba(0,0,0,0.06)",
       },
     },
   },

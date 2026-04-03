@@ -9,6 +9,7 @@ import {
   Lock,
   LogOut,
   Package,
+  Printer,
   Store,
   UtensilsCrossed,
 } from "lucide-react";
@@ -98,6 +99,224 @@ function buildSummary(orders: Order[]): { name: string; qty: number }[] {
   return Array.from(map.entries())
     .map(([name, qty]) => ({ name, qty }))
     .sort((a, b) => b.qty - a.qty);
+}
+
+function printDailyOrders(
+  todaySummary: { name: string; qty: number }[],
+  totalItems: number,
+  dateStr: string,
+) {
+  const rows = todaySummary
+    .map(
+      (item, i) => `
+        <tr class="${i % 2 === 0 ? "row-even" : "row-odd"}">
+          <td class="item-num">${i + 1}</td>
+          <td class="item-name">${item.name}</td>
+          <td class="item-qty">${item.qty}</td>
+        </tr>`,
+    )
+    .join("");
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Daily Orders – ${dateStr}</title>
+  <style>
+    @page { size: A4 portrait; margin: 20mm 18mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #1a1a2e;
+      background: #fff;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      border-bottom: 3px solid #1a1a2e;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+    }
+    .brand {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #1a1a2e;
+    }
+    .brand span { color: #f97316; }
+    .report-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #6b7280;
+      margin-top: 3px;
+    }
+    .meta {
+      text-align: right;
+    }
+    .meta .date-label {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1a1a2e;
+    }
+    .meta .printed-label {
+      font-size: 10px;
+      color: #9ca3af;
+      margin-top: 2px;
+    }
+    .summary-box {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .summary-box .label {
+      font-size: 12px;
+      color: #6b7280;
+      font-weight: 500;
+    }
+    .summary-box .value {
+      font-size: 28px;
+      font-weight: 800;
+      color: #f97316;
+      line-height: 1;
+    }
+    .summary-box .value-sub {
+      font-size: 11px;
+      color: #6b7280;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    thead tr {
+      background: #1a1a2e;
+      color: #fff;
+    }
+    thead th {
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    thead th.item-qty { text-align: right; }
+    tbody tr { border-bottom: 1px solid #f3f4f6; }
+    tbody tr.row-even { background: #fff; }
+    tbody tr.row-odd { background: #f9fafb; }
+    td {
+      padding: 9px 14px;
+      font-size: 13px;
+    }
+    td.item-num {
+      width: 42px;
+      color: #9ca3af;
+      font-weight: 600;
+      font-size: 12px;
+    }
+    td.item-name { font-weight: 500; color: #111827; }
+    td.item-qty {
+      text-align: right;
+      font-weight: 700;
+      color: #f97316;
+      font-size: 14px;
+      width: 80px;
+    }
+    .totals-row {
+      margin-top: 0;
+      background: #1a1a2e;
+      color: #fff;
+    }
+    .totals-row td {
+      padding: 10px 14px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .totals-row td.item-qty {
+      color: #fbbf24;
+      font-size: 15px;
+    }
+    .footer {
+      margin-top: 32px;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="brand">Bonkers <span>Bites</span></div>
+      <div class="report-title">Daily Order Summary</div>
+    </div>
+    <div class="meta">
+      <div class="date-label">${dateStr}</div>
+      <div class="printed-label">Printed: ${new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true })}</div>
+    </div>
+  </div>
+
+  <div class="summary-box">
+    <div>
+      <div class="label">Total items ordered today</div>
+      <div class="value-sub">${todaySummary.length} unique item${todaySummary.length !== 1 ? "s" : ""}</div>
+    </div>
+    <div style="text-align:right">
+      <div class="value">${totalItems}</div>
+      <div class="value-sub">items total</div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Item Name</th>
+        <th class="item-qty">Qty</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows}
+    </tbody>
+    <tfoot>
+      <tr class="totals-row">
+        <td></td>
+        <td>TOTAL</td>
+        <td class="item-qty">${totalItems}</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <div class="footer">
+    <span>Bonkers Bites – Internal Office Food Ordering</span>
+    <span>Generated on ${dateStr}</span>
+  </div>
+
+  <script>
+    window.onload = function() { window.print(); window.onafterprint = function() { window.close(); }; };
+  <\/script>
+</body>
+</html>`;
+
+  const printWindow = window.open("", "_blank", "width=800,height=900");
+  if (printWindow) {
+    printWindow.document.write(html);
+    printWindow.document.close();
+  }
 }
 
 type FilterMode = "all" | "today" | "yesterday" | "custom";
@@ -256,6 +475,7 @@ export function AdminDashboard() {
   );
   const todaySummary = buildSummary(todayOrders);
   const todayTotalItems = todaySummary.reduce((acc, { qty }) => acc + qty, 0);
+  const todayDateStr = formatTodayDate();
 
   // Filtering
   const yesterdayKey = getYesterdayKey();
@@ -337,15 +557,34 @@ export function AdminDashboard() {
                   Today's Order Summary
                 </h2>
                 <span className="text-xs text-primary/70 font-medium">
-                  {formatTodayDate()}
+                  {todayDateStr}
                 </span>
               </div>
-              {todaySummary.length > 0 && (
-                <span className="text-xs bg-primary/15 text-primary px-2.5 py-1 rounded-full font-semibold">
-                  {todayTotalItems} {todayTotalItems === 1 ? "item" : "items"}{" "}
-                  today
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {todaySummary.length > 0 && (
+                  <span className="text-xs bg-primary/15 text-primary px-2.5 py-1 rounded-full font-semibold">
+                    {todayTotalItems} {todayTotalItems === 1 ? "item" : "items"}{" "}
+                    today
+                  </span>
+                )}
+                {todaySummary.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      printDailyOrders(
+                        todaySummary,
+                        todayTotalItems,
+                        todayDateStr,
+                      )
+                    }
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:brightness-110 active:scale-95 transition-all"
+                    data-ocid="today.summary.print.button"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                    Print
+                  </button>
+                )}
+              </div>
             </div>
             {todaySummary.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">

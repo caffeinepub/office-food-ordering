@@ -1,7 +1,7 @@
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { ChefHat, ChevronDown, ShoppingCart } from "lucide-react";
+import { ChefHat, ChevronDown, ShoppingCart, Store } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AdminDashboard } from "./components/AdminDashboard";
 import { MenuItemCard } from "./components/MenuItemCard";
 import { OrderSidebar } from "./components/OrderSidebar";
@@ -22,22 +22,21 @@ import type {
 } from "./types";
 
 const CATEGORIES = [
-  { key: "breakfast", label: "☀️ Breakfast" },
-  { key: "lunch", label: "🍱 Lunch" },
-  { key: "snacks", label: "🍿 Snacks" },
+  { key: "breakfast", label: "Breakfast", icon: "☀️" },
+  { key: "lunch", label: "Lunch", icon: "🍛" },
+  { key: "snacks", label: "Snacks", icon: "🍿" },
 ] as const;
 
-// Restaurant emojis mapping
-const RESTAURANT_EMOJIS: Record<string, string> = {
-  "Ruchi Cafe": "🍽️",
-  "Anna Cafe": "☕",
-  "Local Shop": "🛒",
-  "Babu's Classic": "🍔",
+// Restaurant emojis + metadata
+const RESTAURANT_META: Record<string, { emoji: string; label: string }> = {
+  "Ruchi Cafe": { emoji: "🍽️", label: "Ruchi Cafe" },
+  "Anna Cafe": { emoji: "☕", label: "Anna Cafe" },
+  "Local Shop": { emoji: "🛒", label: "Local Shop" },
+  "Babu's Classic": { emoji: "🍕", label: "Babu's Classic" },
 };
 
-function getRestaurantLabel(name: string): string {
-  const emoji = RESTAURANT_EMOJIS[name] ?? "🏪";
-  return `${emoji} ${name}`;
+function getRestaurantMeta(name: string) {
+  return RESTAURANT_META[name] ?? { emoji: "🏪", label: name };
 }
 
 // Exact name → unique image mapping for every menu item
@@ -51,7 +50,6 @@ const ITEM_IMAGE_MAP: Record<string, string> = {
   "Rasam Idli": "/assets/generated/rasam-idli.dim_400x300.jpg",
   "Idli Vada": "/assets/generated/idli-vada.dim_400x300.jpg",
   "Idli Sambar": "/assets/generated/idli-sambar.dim_400x300.jpg",
-
   // ── Vada variants ──
   "Medu Vada": "/assets/generated/medu-vada.dim_400x300.jpg",
   "Medu Vada (2 pcs)": "/assets/generated/medu-vada.dim_400x300.jpg",
@@ -61,7 +59,6 @@ const ITEM_IMAGE_MAP: Record<string, string> = {
   "Batata Vada Usal": "/assets/generated/batata-vada-usal.dim_400x300.jpg",
   "Wada Pav": "/assets/generated/wada-pav.dim_400x300.jpg",
   "Vada Pav": "/assets/generated/vada-pav.dim_400x300.jpg",
-
   // ── Poha / Upma / Sheera ──
   Poha: "/assets/generated/poha.dim_400x300.jpg",
   "Kanda Poha": "/assets/generated/kanda-poha.dim_400x300.jpg",
@@ -70,7 +67,6 @@ const ITEM_IMAGE_MAP: Record<string, string> = {
   "Sheera Upma Mix": "/assets/generated/sheera-upma-mix.dim_400x300.jpg",
   "Sabudana Khichdi": "/assets/generated/sabudana-khichdi.dim_400x300.jpg",
   "Sabudana Khichadi": "/assets/generated/sabudana-khichdi.dim_400x300.jpg",
-
   // ── Puri / Pav ──
   "Puri Bhaji": "/assets/generated/puri-bhaji.dim_400x300.jpg",
   "Misal Pav": "/assets/generated/misal-pav.dim_400x300.jpg",
@@ -79,7 +75,6 @@ const ITEM_IMAGE_MAP: Record<string, string> = {
   "Masala Pav": "/assets/generated/masala-pav.dim_400x300.jpg",
   "Cheese Pav Bhaji": "/assets/generated/cheese-pav-bhaji.dim_400x300.jpg",
   "Bhaji Pav": "/assets/generated/bhaji-pav.dim_400x300.jpg",
-
   // ── Dosa variants ──
   "Sada Dosa": "/assets/generated/sada-dosa.dim_400x300.jpg",
   "Mysore Sada Dosa": "/assets/generated/mysore-sada-dosa.dim_400x300.jpg",
@@ -96,7 +91,6 @@ const ITEM_IMAGE_MAP: Record<string, string> = {
   "Mysore Rava Masala Dosa":
     "/assets/generated/mysore-rava-masala-dosa.dim_400x300.jpg",
   "Schezwan Sada Dosa": "/assets/generated/schezwan-sada-dosa.dim_400x300.jpg",
-
   // ── Uttapam / Uthappa variants ──
   "Sada Uttapam": "/assets/generated/sada-uttapam.dim_400x300.jpg",
   "Sada Uthappa": "/assets/generated/sada-uttapam.dim_400x300.jpg",
@@ -118,18 +112,15 @@ const ITEM_IMAGE_MAP: Record<string, string> = {
     "/assets/generated/butter-masala-uttapam.dim_400x300.jpg",
   "Mysore Sada Uthappa":
     "/assets/generated/mysore-sada-uttapam.dim_400x300.jpg",
-
   // ── Biryani variants ──
   "Paneer Biryani": "/assets/generated/paneer-biryani.dim_400x300.jpg",
   "Veg Biryani": "/assets/generated/veg-biryani.dim_400x300.jpg",
   "Soya Bean Biryani": "/assets/generated/soya-biryani.dim_400x300.jpg",
   "Soya Biryani": "/assets/generated/soya-biryani.dim_400x300.jpg",
   "Mushroom Biryani": "/assets/generated/mushroom-biryani.dim_400x300.jpg",
-
   // ── Pulav variants ──
   "Veg Pulav": "/assets/generated/veg-pulav.dim_400x300.jpg",
   "Paneer Pulav": "/assets/generated/paneer-pulav.dim_400x300.jpg",
-
   // ── Rice dishes ──
   "Mini Thali": "/assets/generated/mini-thali.dim_400x300.jpg",
   "Veg Thali": "/assets/generated/veg-thali.dim_400x300.jpg",
@@ -143,7 +134,6 @@ const ITEM_IMAGE_MAP: Record<string, string> = {
   "Dal Khichadi": "/assets/generated/dal-khichdi.dim_400x300.jpg",
   "Dal Khichdi Tadka": "/assets/generated/dal-khichdi-tadka.dim_400x300.jpg",
   "Rasam Rice": "/assets/generated/rasam-rice.dim_400x300.jpg",
-
   // ── Fried Rice variants ──
   "Veg Fried Rice": "/assets/generated/veg-fried-rice.dim_400x300.jpg",
   "Schezwan Fried Rice":
@@ -153,7 +143,6 @@ const ITEM_IMAGE_MAP: Record<string, string> = {
   "Paneer Fried Rice": "/assets/generated/paneer-fried-rice.dim_400x300.jpg",
   "Veg Manchurian Fried Rice":
     "/assets/generated/veg-manchurian-fried-rice.dim_400x300.jpg",
-
   // ── Noodles variants ──
   "Veg Hakka Noodles": "/assets/generated/veg-hakka-noodles.dim_400x300.jpg",
   "Veg Schezwan Noodles":
@@ -161,7 +150,6 @@ const ITEM_IMAGE_MAP: Record<string, string> = {
   "Hong Kong Noodles": "/assets/generated/hong-kong-noodles.dim_400x300.jpg",
   "Triple Schezwan Noodles":
     "/assets/generated/triple-schezwan-noodles.dim_400x300.jpg",
-
   // ── Drinks / Lassi ──
   "Sweet Lassi": "/assets/generated/sweet-lassi.dim_400x300.jpg",
   "Salted Lassi": "/assets/generated/salted-lassi.dim_400x300.jpg",
@@ -170,7 +158,6 @@ const ITEM_IMAGE_MAP: Record<string, string> = {
   "Fresh Lime Water": "/assets/generated/fresh-lime-water.dim_400x300.jpg",
   "Fresh Lime Soda": "/assets/generated/fresh-lime-soda.dim_400x300.jpg",
   "Ginger Lemon": "/assets/generated/ginger-lemon.dim_400x300.jpg",
-
   // ── Juices ──
   "Sugarcane Juice": "/assets/generated/sugarcane-juice.dim_400x300.jpg",
   "Beetroot Juice": "/assets/generated/beetroot-juice.dim_400x300.jpg",
@@ -178,11 +165,9 @@ const ITEM_IMAGE_MAP: Record<string, string> = {
   "Mosambi Juice": "/assets/generated/mosambi-juice.dim_400x300.jpg",
   "Watermelon Juice": "/assets/generated/watermelon-juice.dim_400x300.jpg",
   "Pineapple Juice": "/assets/generated/pineapple-juice.dim_400x300.jpg",
-
   // ── Maggi ──
   "Plain Masala Maggi": "/assets/generated/plain-masala-maggi.dim_400x300.jpg",
   "Paneer Maggi": "/assets/generated/paneer-maggi.dim_400x300.jpg",
-
   // ── Sandwiches (Babu's Classic) ──
   "Veg Sandwich": "/assets/generated/veg-sandwich-plain.dim_400x300.jpg",
   Sandwich: "/assets/generated/veg-sandwich.dim_400x300.jpg",
@@ -200,30 +185,24 @@ const ITEM_IMAGE_MAP: Record<string, string> = {
     "/assets/generated/samosa-veg-sandwich.dim_400x300.jpg",
   "Samosa Toast Sandwich":
     "/assets/generated/samosa-toast-sandwich.dim_400x300.jpg",
-
   // ── Pizzas ──
   "Veg Cheese Pizza": "/assets/generated/veg-cheese-pizza.dim_400x300.jpg",
   "Veg Masala Pizza": "/assets/generated/veg-masala-pizza.dim_400x300.jpg",
   "Chilly Corn Pizza": "/assets/generated/chilly-corn-pizza.dim_400x300.jpg",
   "Mushroom Pizza": "/assets/generated/mushroom-pizza.dim_400x300.jpg",
   "Veg Paneer Pizza": "/assets/generated/veg-paneer-pizza.dim_400x300.jpg",
-
   // ── Burgers ──
   "Veg Burger": "/assets/generated/veg-burger.dim_400x300.jpg",
   "Veg Cheese Burger": "/assets/generated/veg-cheese-burger.dim_400x300.jpg",
   "Schezwan Cheese Burger":
     "/assets/generated/schezwan-cheese-burger.dim_400x300.jpg",
-
   // ── Other ──
   Samosa: "/assets/generated/samosa.dim_400x300.jpg",
   Patty: "/assets/generated/veg-burger.dim_400x300.jpg",
 };
 
 function getMenuItemImage(name: string): string {
-  // Exact match first
   if (ITEM_IMAGE_MAP[name]) return ITEM_IMAGE_MAP[name];
-
-  // Fallback: keyword matching for any unlisted items
   const lower = name.toLowerCase();
   if (lower.includes("idli")) return "/assets/generated/idli.dim_400x300.jpg";
   if (lower.includes("dosa")) return "/assets/generated/dosa.dim_400x300.jpg";
@@ -263,13 +242,232 @@ function getMenuItemImage(name: string): string {
   return "/assets/generated/veg-thali.dim_400x300.jpg";
 }
 
+// ── Custom Restaurant Dropdown ──────────────────────────────────────────────
+interface RestaurantDropdownProps {
+  value: string;
+  options: readonly string[];
+  placeholder?: string;
+  onChange: (v: string) => void;
+  id: string;
+  ocid: string;
+}
+
+function RestaurantDropdown({
+  value,
+  options,
+  placeholder,
+  onChange,
+  id,
+  ocid,
+}: RestaurantDropdownProps) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    if (open) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  const selectedMeta = value ? getRestaurantMeta(value) : null;
+
+  return (
+    <div ref={ref} className="relative w-full sm:w-80">
+      <button
+        id={id}
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={[
+          "w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border-2 bg-card text-sm font-medium text-foreground",
+          "shadow-soft hover:shadow-card transition-all duration-200 cursor-pointer focus:outline-none",
+          open
+            ? "border-primary ring-2 ring-primary/20"
+            : "border-border hover:border-primary/50",
+        ].join(" ")}
+        data-ocid={ocid}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        {selectedMeta ? (
+          <>
+            <span className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-base shrink-0">
+              {selectedMeta.emoji}
+            </span>
+            <span className="flex-1 text-left font-semibold text-foreground">
+              {selectedMeta.label}
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center text-base shrink-0">
+              <Store className="w-4 h-4 text-muted-foreground" />
+            </span>
+            <span className="flex-1 text-left text-muted-foreground">
+              {placeholder ?? "Select a restaurant"}
+            </span>
+          </>
+        )}
+        <ChevronDown
+          className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.97 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="absolute top-full left-0 right-0 mt-2 z-50 bg-card rounded-2xl border border-border shadow-elevated overflow-hidden"
+          >
+            {options.map((opt) => {
+              const meta = getRestaurantMeta(opt);
+              const isSelected = opt === value;
+              return (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => {
+                    onChange(opt);
+                    setOpen(false);
+                  }}
+                  className={[
+                    "w-full flex items-center gap-3 px-4 py-3.5 text-sm text-left custom-dropdown-item transition-colors",
+                    isSelected ? "selected" : "",
+                  ].join(" ")}
+                >
+                  <span
+                    className={[
+                      "w-9 h-9 rounded-xl flex items-center justify-center text-base shrink-0 transition-colors",
+                      isSelected ? "bg-primary/15" : "bg-muted",
+                    ].join(" ")}
+                  >
+                    {meta.emoji}
+                  </span>
+                  <span
+                    className={
+                      isSelected
+                        ? "font-semibold text-primary"
+                        : "font-medium text-foreground"
+                    }
+                  >
+                    {meta.label}
+                  </span>
+                  {isSelected && (
+                    <span className="ml-auto w-5 h-5 rounded-full bg-primary flex items-center justify-center shrink-0">
+                      <svg
+                        className="w-3 h-3 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        aria-label="Selected"
+                        role="img"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={3}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ── Menu item card (inline for breakfast/lunch) ────────────────────────────
+interface InlineMenuCardProps {
+  item: { id: string; name: string; price: number };
+  cartItem: RestaurantCartItem | undefined;
+  onAdd: (id: string) => void;
+  onQtyChange: (id: string, delta: number) => void;
+  ocid: string;
+  primaryBtnOcid: string;
+  secondaryBtnOcid: string;
+}
+
+function InlineMenuCard({
+  item,
+  cartItem,
+  onAdd,
+  onQtyChange,
+  ocid,
+  primaryBtnOcid,
+  secondaryBtnOcid,
+}: InlineMenuCardProps) {
+  return (
+    <div
+      className="group bg-card border border-border rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover hover:-translate-y-2 hover:border-primary/30 transition-all duration-300 ease-out cursor-pointer"
+      data-ocid={ocid}
+    >
+      <div className="relative h-36 overflow-hidden bg-muted">
+        <img
+          src={getMenuItemImage(item.name)}
+          alt={item.name}
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 ease-out"
+        />
+      </div>
+      <div className="p-4">
+        <p className="font-display font-semibold text-sm text-foreground leading-tight mb-1.5 line-clamp-2 min-h-[2.5rem]">
+          {item.name}
+        </p>
+        <p className="text-accent font-bold text-base mb-3">₹{item.price}</p>
+        {cartItem ? (
+          <div className="flex items-center justify-between bg-muted rounded-full px-1 py-0.5">
+            <button
+              type="button"
+              onClick={() => onQtyChange(item.id, -1)}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-foreground hover:bg-card active:scale-95 transition-all duration-150 text-lg font-bold"
+              data-ocid={secondaryBtnOcid}
+            >
+              −
+            </button>
+            <span className="text-sm font-bold text-foreground w-6 text-center">
+              {cartItem.quantity}
+            </span>
+            <button
+              type="button"
+              onClick={() => onAdd(item.id)}
+              className="w-8 h-8 rounded-full bg-accent text-white flex items-center justify-center text-lg font-bold hover:brightness-110 active:scale-95 transition-all duration-150"
+              data-ocid={primaryBtnOcid}
+            >
+              +
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => onAdd(item.id)}
+            className="w-full py-2.5 rounded-full bg-accent text-white text-xs font-bold hover:brightness-110 active:scale-95 transition-all duration-150 shadow-sm hover:shadow-md"
+            data-ocid={primaryBtnOcid}
+          >
+            Add to Cart
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Admin route guard ────────────────────────────────────────────────────────
 const isAdminRoute = window.location.pathname === "/admin";
 
 export default function App() {
   if (isAdminRoute) {
     return <AdminDashboard />;
   }
-
   return <MainApp />;
 }
 
@@ -292,6 +490,8 @@ function MainApp() {
   const [formErrors, setFormErrors] = useState<Partial<OrderForm>>({});
   const [showOrderPanel, setShowOrderPanel] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [prevCartCount, setPrevCartCount] = useState(0);
+  const [badgeAnimKey, setBadgeAnimKey] = useState(0);
   const { actor } = useActor();
 
   const regularCartTotal = cart.reduce(
@@ -311,6 +511,14 @@ function MainApp() {
     restaurantCart.reduce((sum, ci) => sum + ci.quantity, 0) +
     lunchCart.reduce((sum, ci) => sum + ci.quantity, 0);
   const cartTotal = regularCartTotal + restaurantCartTotal + lunchCartTotal;
+
+  // Trigger badge pop animation when cart grows
+  useEffect(() => {
+    if (cartTotalItems > prevCartCount) {
+      setBadgeAnimKey((k) => k + 1);
+    }
+    setPrevCartCount(cartTotalItems);
+  }, [cartTotalItems, prevCartCount]);
 
   const getCartItem = (itemId: string) =>
     cart.find((ci) => ci.item.id === itemId);
@@ -347,11 +555,10 @@ function MainApp() {
     if (!item) return;
     setRestaurantCart((prev) => {
       const exists = prev.find((ci) => ci.item.id === itemId);
-      if (exists) {
+      if (exists)
         return prev.map((ci) =>
           ci.item.id === itemId ? { ...ci, quantity: ci.quantity + 1 } : ci,
         );
-      }
       return [...prev, { item, quantity: 1 }];
     });
   };
@@ -372,11 +579,10 @@ function MainApp() {
     if (!item) return;
     setLunchCart((prev) => {
       const exists = prev.find((ci) => ci.item.id === itemId);
-      if (exists) {
+      if (exists)
         return prev.map((ci) =>
           ci.item.id === itemId ? { ...ci, quantity: ci.quantity + 1 } : ci,
         );
-      }
       return [...prev, { item, quantity: 1 }];
     });
   };
@@ -428,7 +634,6 @@ function MainApp() {
 
     const restaurantName =
       selectedRestaurant || selectedLunchRestaurant || "General";
-
     const allItems = [
       ...cart.map((ci) => ({
         itemName: ci.item.name,
@@ -457,11 +662,11 @@ function MainApp() {
           allItems,
           BigInt(cartTotal),
         );
+        console.log("Order saved successfully");
       } catch (e) {
         console.error("Failed to save order:", e);
       }
     }
-
     setShowSuccess(true);
   };
 
@@ -508,12 +713,13 @@ function MainApp() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-card border-b border-border shadow-sm">
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-border shadow-header">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          {/* Brand */}
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-2xl bg-primary flex items-center justify-center shrink-0 shadow-sm">
-              <ChefHat className="w-5 h-5 text-primary-foreground" />
+              <ChefHat className="w-5 h-5 text-white" />
             </div>
             <div className="flex flex-col leading-tight">
               <span className="font-display font-bold text-xl text-foreground leading-none tracking-tight">
@@ -524,16 +730,50 @@ function MainApp() {
               </span>
             </div>
           </div>
+
+          {/* Header actions */}
           <div className="flex items-center gap-3">
+            {/* Desktop cart icon */}
             <button
               type="button"
-              className="lg:hidden relative p-2 rounded-xl bg-muted hover:bg-secondary hover:scale-105 active:scale-95 transition-all duration-150"
+              className="hidden lg:flex relative items-center gap-2 px-4 py-2 rounded-full border-2 border-border bg-card hover:border-primary/40 hover:shadow-soft active:scale-95 transition-all duration-200"
+              onClick={() => {
+                const el = document.getElementById("order-sidebar");
+                el?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              data-ocid="order.open_modal_button"
+            >
+              <div className="relative">
+                <ShoppingCart className="w-5 h-5 text-foreground" />
+                {cartTotalItems > 0 && (
+                  <span
+                    key={badgeAnimKey}
+                    className="absolute -top-2 -right-2 min-w-[18px] h-[18px] bg-accent text-white text-[10px] font-black rounded-full flex items-center justify-center px-1 badge-pop"
+                  >
+                    {cartTotalItems}
+                  </span>
+                )}
+              </div>
+              {cartTotalItems > 0 && (
+                <span className="text-sm font-semibold text-foreground hidden xl:block">
+                  ₹{cartTotal}
+                </span>
+              )}
+            </button>
+
+            {/* Mobile cart icon */}
+            <button
+              type="button"
+              className="lg:hidden relative p-2.5 rounded-2xl bg-muted hover:bg-secondary hover:scale-105 active:scale-95 transition-all duration-150"
               onClick={() => setShowOrderPanel((v) => !v)}
               data-ocid="order.open_modal_button"
             >
               <ShoppingCart className="w-5 h-5 text-foreground" />
               {cartTotalItems > 0 && (
-                <span className="absolute -top-1 -right-1 w-4.5 h-4.5 min-w-[18px] min-h-[18px] bg-accent text-accent-foreground text-[10px] font-bold rounded-full flex items-center justify-center px-0.5">
+                <span
+                  key={badgeAnimKey}
+                  className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-accent text-white text-[10px] font-black rounded-full flex items-center justify-center px-1 badge-pop"
+                >
                   {cartTotalItems}
                 </span>
               )}
@@ -542,87 +782,80 @@ function MainApp() {
         </div>
       </header>
 
-      {/* Hero — food-focused with image background */}
+      {/* ── Hero ────────────────────────────────────────────────────────────── */}
       <section
-        className="relative overflow-hidden min-h-[420px] flex items-center"
+        className="relative overflow-hidden flex items-center"
         style={{
           backgroundImage:
             'url("/assets/generated/hero-food-bg.dim_1400x600.jpg")',
           backgroundSize: "cover",
           backgroundPosition: "center",
+          minHeight: "340px",
         }}
       >
-        {/* Dark overlay gradient */}
+        {/* Gradient overlay */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(135deg, oklch(0.15 0.16 258 / 0.92) 0%, oklch(0.25 0.14 258 / 0.85) 100%)",
+              "linear-gradient(105deg, oklch(0.18 0.12 258 / 0.92) 0%, oklch(0.26 0.13 258 / 0.80) 55%, oklch(0.28 0.15 255 / 0.50) 100%)",
           }}
         />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-12 md:py-16 w-full">
-          <div className="flex items-center justify-between gap-8">
-            {/* Left column — text content */}
-            <div className="flex-1 max-w-xl">
-              {/* Heading */}
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45 }}
-                className="font-display text-3xl sm:text-4xl md:text-5xl font-bold leading-tight text-white"
-              >
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-10 md:py-14 w-full">
+          <div className="max-w-2xl">
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold leading-tight text-white">
                 Fresh food{" "}
-                <span style={{ color: "oklch(0.80 0.18 42)" }}>delivered</span>
+                <span
+                  className="font-black"
+                  style={{ color: "oklch(0.78 0.20 45)" }}
+                >
+                  delivered
+                </span>
                 <br />
                 to your desk
-              </motion.h1>
-
-              {/* Subheading */}
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, delay: 0.1 }}
-                className="mt-4 text-base text-white/70 max-w-md leading-relaxed"
-              >
+              </h1>
+              <p className="mt-4 text-base text-white/75 max-w-md leading-relaxed">
                 Order breakfast, lunch &amp; snacks from multiple restaurants —
                 fresh to your desk every day.
-              </motion.p>
-            </div>
-            {/* Right column — floating food emoji cards (hidden on mobile) */}
+              </p>
+            </motion.div>
+
             <motion.div
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="hidden md:grid grid-cols-2 gap-4 shrink-0 select-none"
-              aria-hidden="true"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.18 }}
+              className="mt-6 flex flex-wrap gap-2"
             >
               {[
-                { emoji: "🍛", delay: "0s" },
-                { emoji: "🥗", delay: "0.6s" },
-                { emoji: "🌮", delay: "1.2s" },
-                { emoji: "🍱", delay: "1.8s" },
-              ].map(({ emoji, delay }) => (
-                <div
-                  key={emoji}
-                  className="w-24 h-24 rounded-2xl flex items-center justify-center text-4xl food-float"
+                { icon: "🏪", text: "Multiple restaurants" },
+                { icon: "⚡", text: "Fresh daily" },
+                { icon: "📱", text: "UPI payments" },
+              ].map((chip) => (
+                <span
+                  key={chip.text}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold backdrop-blur-sm"
                   style={{
-                    background: "rgba(255,255,255,0.10)",
-                    backdropFilter: "blur(12px)",
-                    border: "1px solid rgba(255,255,255,0.18)",
-                    boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
-                    animationDelay: delay,
+                    background: "rgba(255,255,255,0.14)",
+                    border: "1px solid rgba(255,255,255,0.22)",
+                    color: "rgba(255,255,255,0.92)",
                   }}
                 >
-                  {emoji}
-                </div>
+                  <span>{chip.icon}</span>
+                  {chip.text}
+                </span>
               ))}
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Main Content */}
+      {/* ── Main Content ────────────────────────────────────────────────────── */}
       <main
         id="menu-section"
         className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-8"
@@ -631,10 +864,12 @@ function MainApp() {
           {/* Menu Column */}
           <div className="flex-1 min-w-0">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              {/* Category Tabs */}
+              {/* Category Pill Tabs */}
               <div
-                className="flex border-b border-border mb-6"
+                className="flex flex-wrap gap-2.5 mb-8"
                 data-ocid="menu.tab"
+                role="tablist"
+                aria-label="Menu categories"
               >
                 {CATEGORIES.map((cat) => {
                   const isActive = activeTab === cat.key;
@@ -642,51 +877,41 @@ function MainApp() {
                     <button
                       key={cat.key}
                       type="button"
+                      role="tab"
+                      aria-selected={isActive}
                       onClick={() => setActiveTab(cat.key)}
                       data-ocid={`menu.${cat.key}.tab`}
                       className={[
-                        "relative px-6 py-3.5 text-sm font-medium transition-all duration-200 focus:outline-none whitespace-nowrap rounded-t-lg",
+                        "flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 focus:outline-none select-none",
                         isActive
-                          ? "text-primary font-semibold bg-primary/5 rounded-t-xl"
-                          : "text-muted-foreground hover:text-primary hover:bg-primary/5",
+                          ? "bg-primary text-white shadow-md scale-105 pill-active"
+                          : "bg-white text-gray-600 border border-gray-200 hover:border-primary/40 hover:text-primary hover:bg-primary/5 hover:scale-102",
                       ].join(" ")}
                     >
+                      <span className="text-base leading-none">{cat.icon}</span>
                       {cat.label}
-                      {isActive && (
-                        <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-primary rounded-t-full" />
-                      )}
                     </button>
                   );
                 })}
               </div>
 
-              {/* Breakfast Tab — restaurant-based ordering */}
+              {/* Breakfast Tab */}
               <TabsContent value="breakfast" className="mt-0">
-                {/* Restaurant selector */}
-                <div className="mb-5">
+                <div className="mb-6">
                   <label
                     htmlFor="restaurant-select"
-                    className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2"
+                    className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2.5"
                   >
                     Select Restaurant
                   </label>
-                  <div className="relative w-full sm:w-80">
-                    <select
-                      id="restaurant-select"
-                      value={selectedRestaurant}
-                      onChange={(e) => handleRestaurantChange(e.target.value)}
-                      className="w-full appearance-none bg-card border-2 border-border rounded-xl px-4 py-3.5 pr-10 text-sm font-medium text-foreground shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none hover:border-primary/60 transition-all duration-200 cursor-pointer"
-                      data-ocid="breakfast.restaurant.select"
-                    >
-                      <option value="">— Select a restaurant —</option>
-                      {RESTAURANTS.map((r) => (
-                        <option key={r} value={r}>
-                          {getRestaurantLabel(r)}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                  </div>
+                  <RestaurantDropdown
+                    id="restaurant-select"
+                    value={selectedRestaurant}
+                    options={RESTAURANTS}
+                    placeholder="Choose a restaurant to view menu"
+                    onChange={handleRestaurantChange}
+                    ocid="breakfast.restaurant.select"
+                  />
                 </div>
 
                 {!selectedRestaurant ? (
@@ -694,10 +919,10 @@ function MainApp() {
                     className="flex flex-col items-center justify-center py-16 text-center"
                     data-ocid="breakfast.restaurant.empty_state"
                   >
-                    <div className="w-16 h-16 rounded-2xl bg-primary/8 flex items-center justify-center mb-4">
-                      <ChefHat className="w-8 h-8 text-primary/50" />
+                    <div className="w-20 h-20 rounded-3xl bg-primary/8 flex items-center justify-center mb-4">
+                      <span className="text-4xl">🏪</span>
                     </div>
-                    <p className="text-sm font-semibold text-foreground mb-1">
+                    <p className="text-sm font-semibold text-foreground mb-1.5">
                       Please select a restaurant to view the menu
                     </p>
                     <p className="text-xs text-muted-foreground">
@@ -708,117 +933,58 @@ function MainApp() {
                 ) : (
                   <motion.div
                     key={selectedRestaurant}
-                    initial={{ opacity: 0, y: 8 }}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.25 }}
                   >
-                    <div className="flex items-center gap-2.5 mb-4">
-                      <h2 className="text-base font-bold text-foreground">
-                        {getRestaurantLabel(selectedRestaurant)}
+                    <div className="flex items-center gap-2.5 mb-5">
+                      <span className="text-2xl">
+                        {getRestaurantMeta(selectedRestaurant).emoji}
+                      </span>
+                      <h2 className="font-display text-lg font-bold text-foreground">
+                        {selectedRestaurant}
                       </h2>
                       <span className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full font-semibold">
                         {restaurantMenus[selectedRestaurant]?.length} items
                       </span>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                       {(restaurantMenus[selectedRestaurant] ?? []).map(
-                        (item, idx) => {
-                          const cartItem = getRestaurantCartItem(item.id);
-                          return (
-                            <div
-                              key={item.id}
-                              className="group bg-card border border-border rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover hover:-translate-y-1 hover:border-accent/30 transition-[transform,box-shadow,border-color] duration-300 cursor-pointer"
-                              data-ocid={`breakfast.item.${idx + 1}`}
-                            >
-                              {/* Real food image */}
-                              <div className="relative h-32 overflow-hidden bg-muted">
-                                <img
-                                  src={getMenuItemImage(item.name)}
-                                  alt={item.name}
-                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 ease-out"
-                                />
-                              </div>
-                              <div className="p-4">
-                                <p className="font-display font-semibold text-sm text-foreground leading-tight mb-1.5 line-clamp-2">
-                                  {item.name}
-                                </p>
-                                <p className="text-accent font-bold text-base mb-2.5">
-                                  ₹{item.price}
-                                </p>
-                                {cartItem ? (
-                                  <div className="flex items-center justify-between bg-muted rounded-full px-1 py-0.5">
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        handleRestaurantQtyChange(item.id, -1)
-                                      }
-                                      className="w-7 h-7 rounded-lg flex items-center justify-center text-foreground hover:bg-card active:scale-95 transition-all duration-150 text-base font-bold"
-                                      data-ocid={`breakfast.item.${idx + 1}.secondary_button`}
-                                    >
-                                      −
-                                    </button>
-                                    <span className="text-sm font-bold text-foreground w-6 text-center">
-                                      {cartItem.quantity}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        handleRestaurantAdd(item.id)
-                                      }
-                                      className="w-7 h-7 rounded-lg bg-accent text-white flex items-center justify-center text-base font-bold hover:brightness-110 active:scale-95 transition-all duration-150"
-                                      data-ocid={`breakfast.item.${idx + 1}.primary_button`}
-                                    >
-                                      +
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRestaurantAdd(item.id)}
-                                    className="w-full py-2.5 rounded-full bg-accent text-white text-xs font-bold hover:brightness-110 active:scale-95 transition-all duration-150 shadow-sm"
-                                    data-ocid={`breakfast.item.${idx + 1}.primary_button`}
-                                  >
-                                    Add to Cart
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        },
+                        (item, idx) => (
+                          <InlineMenuCard
+                            key={item.id}
+                            item={item}
+                            cartItem={getRestaurantCartItem(item.id)}
+                            onAdd={handleRestaurantAdd}
+                            onQtyChange={handleRestaurantQtyChange}
+                            ocid={`breakfast.item.${idx + 1}`}
+                            primaryBtnOcid={`breakfast.item.${idx + 1}.primary_button`}
+                            secondaryBtnOcid={`breakfast.item.${idx + 1}.secondary_button`}
+                          />
+                        ),
                       )}
                     </div>
                   </motion.div>
                 )}
               </TabsContent>
 
-              {/* Lunch Tab — restaurant-based ordering */}
+              {/* Lunch Tab */}
               <TabsContent value="lunch" className="mt-0">
-                <div className="mb-5">
+                <div className="mb-6">
                   <label
                     htmlFor="lunch-restaurant-select"
-                    className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2"
+                    className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2.5"
                   >
                     Select Restaurant
                   </label>
-                  <div className="relative w-full sm:w-80">
-                    <select
-                      id="lunch-restaurant-select"
-                      value={selectedLunchRestaurant}
-                      onChange={(e) =>
-                        handleLunchRestaurantChange(e.target.value)
-                      }
-                      className="w-full appearance-none bg-card border-2 border-border rounded-xl px-4 py-3.5 pr-10 text-sm font-medium text-foreground shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none hover:border-primary/60 transition-all duration-200 cursor-pointer"
-                      data-ocid="lunch.restaurant.select"
-                    >
-                      <option value="">— Select a restaurant —</option>
-                      {LUNCH_RESTAURANTS.map((r) => (
-                        <option key={r} value={r}>
-                          {getRestaurantLabel(r)}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                  </div>
+                  <RestaurantDropdown
+                    id="lunch-restaurant-select"
+                    value={selectedLunchRestaurant}
+                    options={LUNCH_RESTAURANTS}
+                    placeholder="Choose a restaurant for lunch"
+                    onChange={handleLunchRestaurantChange}
+                    ocid="lunch.restaurant.select"
+                  />
                 </div>
 
                 {!selectedLunchRestaurant ? (
@@ -826,10 +992,10 @@ function MainApp() {
                     className="flex flex-col items-center justify-center py-16 text-center"
                     data-ocid="lunch.restaurant.empty_state"
                   >
-                    <div className="w-16 h-16 rounded-2xl bg-primary/8 flex items-center justify-center mb-4">
-                      <ChefHat className="w-8 h-8 text-primary/50" />
+                    <div className="w-20 h-20 rounded-3xl bg-primary/8 flex items-center justify-center mb-4">
+                      <span className="text-4xl">🍛</span>
                     </div>
-                    <p className="text-sm font-semibold text-foreground mb-1">
+                    <p className="text-sm font-semibold text-foreground mb-1.5">
                       Please select a restaurant to view the lunch menu
                     </p>
                     <p className="text-xs text-muted-foreground">
@@ -839,90 +1005,44 @@ function MainApp() {
                 ) : (
                   <motion.div
                     key={selectedLunchRestaurant}
-                    initial={{ opacity: 0, y: 8 }}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.25 }}
                   >
-                    <div className="flex items-center gap-2.5 mb-4">
-                      <h2 className="text-base font-bold text-foreground">
-                        {getRestaurantLabel(selectedLunchRestaurant)}
+                    <div className="flex items-center gap-2.5 mb-5">
+                      <span className="text-2xl">
+                        {getRestaurantMeta(selectedLunchRestaurant).emoji}
+                      </span>
+                      <h2 className="font-display text-lg font-bold text-foreground">
+                        {selectedLunchRestaurant}
                       </h2>
                       <span className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full font-semibold">
                         {lunchMenus[selectedLunchRestaurant]?.length} items
                       </span>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                       {(lunchMenus[selectedLunchRestaurant] ?? []).map(
-                        (item, idx) => {
-                          const cartItem = getLunchCartItem(item.id);
-                          return (
-                            <div
-                              key={item.id}
-                              className="group bg-card border border-border rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover hover:-translate-y-1 hover:border-accent/30 transition-[transform,box-shadow,border-color] duration-300 cursor-pointer"
-                              data-ocid={`lunch.item.${idx + 1}`}
-                            >
-                              {/* Real food image */}
-                              <div className="relative h-32 overflow-hidden bg-muted">
-                                <img
-                                  src={getMenuItemImage(item.name)}
-                                  alt={item.name}
-                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 ease-out"
-                                />
-                              </div>
-                              <div className="p-4">
-                                <p className="font-display font-semibold text-sm text-foreground leading-tight mb-1.5 line-clamp-2">
-                                  {item.name}
-                                </p>
-                                <p className="text-accent font-bold text-base mb-2.5">
-                                  ₹{item.price}
-                                </p>
-                                {cartItem ? (
-                                  <div className="flex items-center justify-between bg-muted rounded-full px-1 py-0.5">
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        handleLunchQtyChange(item.id, -1)
-                                      }
-                                      className="w-7 h-7 rounded-lg flex items-center justify-center text-foreground hover:bg-card active:scale-95 transition-all duration-150 text-base font-bold"
-                                      data-ocid={`lunch.item.${idx + 1}.secondary_button`}
-                                    >
-                                      −
-                                    </button>
-                                    <span className="text-sm font-bold text-foreground w-6 text-center">
-                                      {cartItem.quantity}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleLunchAdd(item.id)}
-                                      className="w-7 h-7 rounded-lg bg-accent text-white flex items-center justify-center text-base font-bold hover:brightness-110 active:scale-95 transition-all duration-150"
-                                      data-ocid={`lunch.item.${idx + 1}.primary_button`}
-                                    >
-                                      +
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleLunchAdd(item.id)}
-                                    className="w-full py-2.5 rounded-full bg-accent text-white text-xs font-bold hover:brightness-110 active:scale-95 transition-all duration-150 shadow-sm"
-                                    data-ocid={`lunch.item.${idx + 1}.primary_button`}
-                                  >
-                                    Add to Cart
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        },
+                        (item, idx) => (
+                          <InlineMenuCard
+                            key={item.id}
+                            item={item}
+                            cartItem={getLunchCartItem(item.id)}
+                            onAdd={handleLunchAdd}
+                            onQtyChange={handleLunchQtyChange}
+                            ocid={`lunch.item.${idx + 1}`}
+                            primaryBtnOcid={`lunch.item.${idx + 1}.primary_button`}
+                            secondaryBtnOcid={`lunch.item.${idx + 1}.secondary_button`}
+                          />
+                        ),
                       )}
                     </div>
                   </motion.div>
                 )}
               </TabsContent>
 
-              {/* Snacks tab */}
+              {/* Snacks Tab */}
               <TabsContent key="snacks" value="snacks" className="mt-0">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   {menuItems
                     .filter((item) => item.category === "snacks")
                     .map((item) => (
@@ -939,9 +1059,9 @@ function MainApp() {
             </Tabs>
           </div>
 
-          {/* Sidebar - Desktop */}
-          <aside className="hidden lg:block w-80 shrink-0">
-            <div className="sticky top-[72px]">
+          {/* Desktop Sidebar */}
+          <aside className="hidden lg:block w-80 shrink-0" id="order-sidebar">
+            <div className="sticky top-[80px]">
               <OrderSidebar
                 cartItems={cart}
                 restaurantCartItems={[...restaurantCart, ...lunchCart]}
@@ -959,31 +1079,31 @@ function MainApp() {
         </div>
       </main>
 
-      {/* Mobile Order Panel Backdrop */}
+      {/* Mobile Backdrop */}
       <AnimatePresence>
         {showOrderPanel && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
             onClick={() => setShowOrderPanel(false)}
           />
         )}
       </AnimatePresence>
 
-      {/* Mobile Order Panel */}
+      {/* Mobile Order Panel (bottom sheet) */}
       <AnimatePresence>
         {showOrderPanel && (
           <motion.div
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-background rounded-t-2xl border-t border-border shadow-xl max-h-[85vh] overflow-y-auto p-4 lg:hidden"
+            transition={{ type: "spring", stiffness: 320, damping: 30 }}
+            className="fixed bottom-0 left-0 right-0 z-50 bg-background rounded-t-3xl border-t border-border shadow-xl max-h-[88vh] overflow-y-auto p-4 lg:hidden"
             data-ocid="order.sheet"
           >
-            <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4" />
+            <div className="w-10 h-1.5 bg-border rounded-full mx-auto mb-5" />
             <OrderSidebar
               cartItems={cart}
               restaurantCartItems={[...restaurantCart, ...lunchCart]}
@@ -1001,22 +1121,25 @@ function MainApp() {
 
       {/* Mobile Sticky Bottom Bar */}
       {cartTotalItems > 0 && !showOrderPanel && (
-        <div className="fixed bottom-0 left-0 right-0 z-30 lg:hidden bg-primary text-primary-foreground px-4 py-3 flex items-center justify-between shadow-lg">
-          <div>
-            <span className="text-sm font-semibold">
-              {cartTotalItems} item{cartTotalItems > 1 ? "s" : ""} selected
-            </span>
-            <span className="text-xs text-primary-foreground/80 ml-2">
-              ₹{cartTotal}
-            </span>
-          </div>
+        <div className="fixed bottom-0 left-0 right-0 z-30 lg:hidden px-4 py-3">
           <button
             type="button"
             onClick={() => setShowOrderPanel(true)}
-            className="px-4 py-2 bg-accent text-accent-foreground text-sm font-semibold rounded-full hover:brightness-110 active:scale-[0.98] transition-all duration-150"
+            className="w-full flex items-center justify-between bg-primary text-white px-5 py-3.5 rounded-2xl shadow-elevated hover:brightness-110 active:scale-[0.98] transition-all duration-150"
             data-ocid="order.open_modal_button"
           >
-            View Order
+            <div className="flex items-center gap-2">
+              <ShoppingCart className="w-4 h-4" />
+              <span className="text-sm font-semibold">
+                {cartTotalItems} item{cartTotalItems > 1 ? "s" : ""}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-sm">₹{cartTotal}</span>
+              <span className="text-xs bg-white/20 px-3 py-1 rounded-full font-semibold">
+                View Order →
+              </span>
+            </div>
           </button>
         </div>
       )}
