@@ -213,5 +213,63 @@ export const restaurantMenus: Record<
     { id: "ls-15", name: "Mosambi Juice", price: 50 },
     { id: "ls-16", name: "Watermelon Juice", price: 30 },
     { id: "ls-17", name: "Pineapple Juice", price: 50 },
+    { id: "ls-18", name: "Sada Dosa", price: 40 },
+    { id: "ls-19", name: "Butter Sada Dosa", price: 60 },
+    { id: "ls-20", name: "Schezwan Sada Dosa", price: 60 },
+    { id: "ls-21", name: "Butter Masala Dosa", price: 70 },
+    { id: "ls-22", name: "Mysore Sada Dosa", price: 70 },
+    { id: "ls-23", name: "Mysore Masala Dosa", price: 90 },
+    { id: "ls-24", name: "Sada Uttappa (2 pcs)", price: 50 },
+    { id: "ls-25", name: "Onion Uttappa", price: 80 },
+    { id: "ls-26", name: "Masala Uttappa", price: 90 },
+    { id: "ls-27", name: "Cheese Uttappa", price: 90 },
+    { id: "ls-28", name: "Veg Uttappa", price: 100 },
+    { id: "ls-29", name: "Idli (2 pcs)", price: 30 },
+    { id: "ls-30", name: "Medu Vada (2 pcs)", price: 40 },
   ],
 };
+
+// Lunch menus per restaurant
+export const lunchMenus: Record<
+  string,
+  { id: string; name: string; price: number }[]
+> = {
+  "Ruchi Cafe": [
+    // Rice & Thali
+    { id: "rcl-1", name: "Mini Thali", price: 90 },
+    { id: "rcl-2", name: "Veg Thali", price: 120 },
+    { id: "rcl-3", name: "Dal Rice", price: 80 },
+    { id: "rcl-4", name: "Sambar Rice", price: 80 },
+    { id: "rcl-5", name: "Lemon Rice", price: 90 },
+    { id: "rcl-6", name: "Curd Rice", price: 90 },
+    { id: "rcl-7", name: "Masala Rice", price: 90 },
+    { id: "rcl-8", name: "Chapati Bhaji", price: 70 },
+    { id: "rcl-9", name: "Dal Khichdi", price: 100 },
+    { id: "rcl-10", name: "Dal Khichdi Tadka", price: 110 },
+    { id: "rcl-11", name: "Rasam Rice", price: 100 },
+    { id: "rcl-12", name: "Paneer Biryani", price: 130 },
+    { id: "rcl-13", name: "Veg Biryani", price: 110 },
+    { id: "rcl-14", name: "Soya Bean Biryani", price: 110 },
+    // Fried Rice
+    { id: "rcl-15", name: "Veg Fried Rice", price: 90 },
+    { id: "rcl-16", name: "Schezwan Fried Rice", price: 100 },
+    { id: "rcl-17", name: "Hong Kong Fried Rice", price: 110 },
+    { id: "rcl-18", name: "Paneer Fried Rice", price: 120 },
+    { id: "rcl-19", name: "Veg Manchurian Fried Rice", price: 160 },
+    // Noodles
+    { id: "rcl-20", name: "Veg Hakka Noodles", price: 95 },
+    { id: "rcl-21", name: "Veg Schezwan Noodles", price: 105 },
+    { id: "rcl-22", name: "Hong Kong Noodles", price: 105 },
+    { id: "rcl-23", name: "Triple Schezwan Noodles", price: 160 },
+    // Drinks
+    { id: "rcl-24", name: "Sweet Lassi", price: 60 },
+    { id: "rcl-25", name: "Salted Lassi", price: 60 },
+    { id: "rcl-26", name: "Mango Lassi", price: 80 },
+    { id: "rcl-27", name: "Buttermilk", price: 35 },
+    { id: "rcl-28", name: "Fresh Lime Water", price: 30 },
+    { id: "rcl-29", name: "Fresh Lime Soda", price: 60 },
+    { id: "rcl-30", name: "Ginger Lemon", price: 50 },
+  ],
+};
+
+export const LUNCH_RESTAURANTS = ["Ruchi Cafe"] as const;

@@ -6,7 +6,13 @@ import { AdminDashboard } from "./components/AdminDashboard";
 import { MenuItemCard } from "./components/MenuItemCard";
 import { OrderSidebar } from "./components/OrderSidebar";
 import { SuccessOverlay } from "./components/SuccessOverlay";
-import { RESTAURANTS, menuItems, restaurantMenus } from "./data/menuData";
+import {
+  LUNCH_RESTAURANTS,
+  RESTAURANTS,
+  lunchMenus,
+  menuItems,
+  restaurantMenus,
+} from "./data/menuData";
 import { useActor } from "./hooks/useActor";
 import type {
   CartItem,
@@ -36,8 +42,11 @@ function MainApp() {
   const [restaurantCart, setRestaurantCart] = useState<RestaurantCartItem[]>(
     [],
   );
+  const [lunchCart, setLunchCart] = useState<RestaurantCartItem[]>([]);
   const [activeTab, setActiveTab] = useState<string>("breakfast");
   const [selectedRestaurant, setSelectedRestaurant] = useState<string>("");
+  const [selectedLunchRestaurant, setSelectedLunchRestaurant] =
+    useState<string>("");
   const [form, setForm] = useState<OrderForm>({
     name: "",
     department: "",
@@ -57,15 +66,22 @@ function MainApp() {
     (sum, ci) => sum + ci.item.price * ci.quantity,
     0,
   );
+  const lunchCartTotal = lunchCart.reduce(
+    (sum, ci) => sum + ci.item.price * ci.quantity,
+    0,
+  );
   const cartTotalItems =
     cart.reduce((sum, ci) => sum + ci.quantity, 0) +
-    restaurantCart.reduce((sum, ci) => sum + ci.quantity, 0);
-  const cartTotal = regularCartTotal + restaurantCartTotal;
+    restaurantCart.reduce((sum, ci) => sum + ci.quantity, 0) +
+    lunchCart.reduce((sum, ci) => sum + ci.quantity, 0);
+  const cartTotal = regularCartTotal + restaurantCartTotal + lunchCartTotal;
 
   const getCartItem = (itemId: string) =>
     cart.find((ci) => ci.item.id === itemId);
   const getRestaurantCartItem = (itemId: string) =>
     restaurantCart.find((ci) => ci.item.id === itemId);
+  const getLunchCartItem = (itemId: string) =>
+    lunchCart.find((ci) => ci.item.id === itemId);
 
   const handleToggle = (item: MenuItem) => {
     setCart((prev) => {
@@ -114,9 +130,40 @@ function MainApp() {
     );
   };
 
+  const handleLunchAdd = (itemId: string) => {
+    const menu = lunchMenus[selectedLunchRestaurant];
+    const item = menu?.find((m) => m.id === itemId);
+    if (!item) return;
+    setLunchCart((prev) => {
+      const exists = prev.find((ci) => ci.item.id === itemId);
+      if (exists) {
+        return prev.map((ci) =>
+          ci.item.id === itemId ? { ...ci, quantity: ci.quantity + 1 } : ci,
+        );
+      }
+      return [...prev, { item, quantity: 1 }];
+    });
+  };
+
+  const handleLunchQtyChange = (itemId: string, delta: number) => {
+    setLunchCart((prev) =>
+      prev
+        .map((ci) =>
+          ci.item.id === itemId ? { ...ci, quantity: ci.quantity + delta } : ci,
+        )
+        .filter((ci) => ci.quantity > 0),
+    );
+  };
+
   const handleRestaurantChange = (restaurant: string) => {
     setSelectedRestaurant(restaurant);
     setRestaurantCart([]);
+    setForm((prev) => ({ ...prev, restaurantName: restaurant }));
+  };
+
+  const handleLunchRestaurantChange = (restaurant: string) => {
+    setSelectedLunchRestaurant(restaurant);
+    setLunchCart([]);
     setForm((prev) => ({ ...prev, restaurantName: restaurant }));
   };
 
@@ -143,7 +190,8 @@ function MainApp() {
       return;
     }
 
-    const restaurantName = selectedRestaurant || "General";
+    const restaurantName =
+      selectedRestaurant || selectedLunchRestaurant || "General";
 
     const allItems = [
       ...cart.map((ci) => ({
@@ -152,6 +200,11 @@ function MainApp() {
         price: BigInt(ci.item.price),
       })),
       ...restaurantCart.map((ci) => ({
+        itemName: ci.item.name,
+        quantity: BigInt(ci.quantity),
+        price: BigInt(ci.item.price),
+      })),
+      ...lunchCart.map((ci) => ({
         itemName: ci.item.name,
         quantity: BigInt(ci.quantity),
         price: BigInt(ci.item.price),
@@ -180,7 +233,9 @@ function MainApp() {
     setShowSuccess(false);
     setCart([]);
     setRestaurantCart([]);
+    setLunchCart([]);
     setSelectedRestaurant("");
+    setSelectedLunchRestaurant("");
     setForm({ name: "", department: "", phone: "", restaurantName: "" });
     setFormErrors({});
     setShowOrderPanel(false);
@@ -188,7 +243,7 @@ function MainApp() {
 
   const currentYear = new Date().getFullYear();
 
-  // Build CartItem-compatible list for success overlay (restaurant items)
+  // Build CartItem-compatible list for success overlay
   const allCartItemsForSuccess: CartItem[] = [
     ...cart,
     ...restaurantCart.map((ci) => ({
@@ -198,6 +253,17 @@ function MainApp() {
         description: "",
         price: ci.item.price,
         category: "breakfast" as const,
+        image: "",
+      },
+      quantity: ci.quantity,
+    })),
+    ...lunchCart.map((ci) => ({
+      item: {
+        id: ci.item.id,
+        name: ci.item.name,
+        description: "",
+        price: ci.item.price,
+        category: "lunch" as const,
         image: "",
       },
       quantity: ci.quantity,
@@ -421,24 +487,142 @@ function MainApp() {
                 )}
               </TabsContent>
 
-              {/* Lunch & Snacks tabs — existing behavior */}
-              {(["lunch", "snacks"] as const).map((cat) => (
-                <TabsContent key={cat} value={cat} className="mt-0">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {menuItems
-                      .filter((item) => item.category === cat)
-                      .map((item) => (
-                        <MenuItemCard
-                          key={item.id}
-                          item={item}
-                          cartItem={getCartItem(item.id)}
-                          onToggle={handleToggle}
-                          onQtyChange={handleQtyChange}
-                        />
-                      ))}
+              {/* Lunch Tab — restaurant-based ordering */}
+              <TabsContent value="lunch" className="mt-0">
+                <div className="mb-5">
+                  <label
+                    htmlFor="lunch-restaurant-select"
+                    className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2"
+                  >
+                    Select Restaurant
+                  </label>
+                  <select
+                    id="lunch-restaurant-select"
+                    value={selectedLunchRestaurant}
+                    onChange={(e) =>
+                      handleLunchRestaurantChange(e.target.value)
+                    }
+                    className="w-full sm:w-72 px-3 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-shadow"
+                    data-ocid="lunch.restaurant.select"
+                  >
+                    <option value="">-- Select a restaurant --</option>
+                    {LUNCH_RESTAURANTS.map((r) => (
+                      <option key={r} value={r}>
+                        {r}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {!selectedLunchRestaurant ? (
+                  <div
+                    className="flex flex-col items-center justify-center py-16 text-center"
+                    data-ocid="lunch.restaurant.empty_state"
+                  >
+                    <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-3">
+                      <ChefHat className="w-7 h-7 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm font-medium text-foreground mb-1">
+                      Please select a restaurant to view the lunch menu
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Currently available: Ruchi Cafe
+                    </p>
                   </div>
-                </TabsContent>
-              ))}
+                ) : (
+                  <motion.div
+                    key={selectedLunchRestaurant}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                  >
+                    <div className="flex items-center gap-2 mb-4">
+                      <h2 className="text-base font-bold text-foreground">
+                        {selectedLunchRestaurant}
+                      </h2>
+                      <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                        {lunchMenus[selectedLunchRestaurant]?.length} items
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {(lunchMenus[selectedLunchRestaurant] ?? []).map(
+                        (item, idx) => {
+                          const cartItem = getLunchCartItem(item.id);
+                          return (
+                            <div
+                              key={item.id}
+                              className="flex items-center justify-between bg-card border border-border rounded-xl px-4 py-3 hover:border-primary/30 transition-colors"
+                              data-ocid={`lunch.item.${idx + 1}`}
+                            >
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium text-foreground truncate">
+                                  {item.name}
+                                </p>
+                                <p className="text-xs text-primary font-semibold mt-0.5">
+                                  ₹{item.price}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2 ml-3 shrink-0">
+                                {cartItem ? (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleLunchQtyChange(item.id, -1)
+                                      }
+                                      className="w-7 h-7 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-muted transition-colors text-sm font-bold"
+                                      data-ocid={`lunch.item.${idx + 1}.secondary_button`}
+                                    >
+                                      −
+                                    </button>
+                                    <span className="text-sm font-semibold text-foreground w-5 text-center">
+                                      {cartItem.quantity}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleLunchAdd(item.id)}
+                                      className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold hover:opacity-90 transition-opacity"
+                                      data-ocid={`lunch.item.${idx + 1}.primary_button`}
+                                    >
+                                      +
+                                    </button>
+                                  </>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleLunchAdd(item.id)}
+                                    className="px-3 py-1.5 bg-primary text-primary-foreground text-xs font-semibold rounded-lg hover:opacity-90 transition-opacity"
+                                    data-ocid={`lunch.item.${idx + 1}.primary_button`}
+                                  >
+                                    Add
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        },
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </TabsContent>
+
+              {/* Snacks tab */}
+              <TabsContent key="snacks" value="snacks" className="mt-0">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {menuItems
+                    .filter((item) => item.category === "snacks")
+                    .map((item) => (
+                      <MenuItemCard
+                        key={item.id}
+                        item={item}
+                        cartItem={getCartItem(item.id)}
+                        onToggle={handleToggle}
+                        onQtyChange={handleQtyChange}
+                      />
+                    ))}
+                </div>
+              </TabsContent>
             </Tabs>
           </div>
 
@@ -447,8 +631,10 @@ function MainApp() {
             <div className="sticky top-20">
               <OrderSidebar
                 cartItems={cart}
-                restaurantCartItems={restaurantCart}
-                selectedRestaurant={selectedRestaurant}
+                restaurantCartItems={[...restaurantCart, ...lunchCart]}
+                selectedRestaurant={
+                  selectedRestaurant || selectedLunchRestaurant
+                }
                 form={form}
                 onFormChange={handleFormChange}
                 onSubmit={handleSubmit}
@@ -487,8 +673,8 @@ function MainApp() {
             <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4" />
             <OrderSidebar
               cartItems={cart}
-              restaurantCartItems={restaurantCart}
-              selectedRestaurant={selectedRestaurant}
+              restaurantCartItems={[...restaurantCart, ...lunchCart]}
+              selectedRestaurant={selectedRestaurant || selectedLunchRestaurant}
               form={form}
               onFormChange={handleFormChange}
               onSubmit={handleSubmit}
