@@ -164,11 +164,13 @@ function AdminLoginGate({ onLogin }: { onLogin: () => void }) {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <div className="bg-card border border-border rounded-2xl p-8 w-full max-w-sm text-center shadow-sm">
+      <div className="bg-card border border-border rounded-2xl p-10 w-full max-w-sm text-center shadow-lg">
         <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center mx-auto mb-4">
           <UtensilsCrossed className="w-6 h-6 text-primary-foreground" />
         </div>
-        <h1 className="text-xl font-bold text-foreground mb-1">Admin Access</h1>
+        <h1 className="font-display text-xl font-bold text-foreground mb-1">
+          Admin Access
+        </h1>
         <p className="text-sm text-muted-foreground mb-6">
           Enter your admin PIN to access the dashboard.
         </p>
@@ -287,7 +289,7 @@ export function AdminDashboard() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-card border-b border-border shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <UtensilsCrossed className="w-4 h-4 text-primary-foreground" />
@@ -321,25 +323,25 @@ export function AdminDashboard() {
         </div>
       </header>
 
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-6">
+      <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-8">
         {/* TODAY'S ORDER SUMMARY — top of dashboard */}
         {!loading && (
           <div
-            className="mb-6 rounded-xl border-2 border-amber-300/60 bg-amber-50/60 dark:bg-amber-950/20 dark:border-amber-600/40 p-4"
+            className="mb-6 rounded-xl border-2 border-primary/20 bg-primary/5 p-4"
             data-ocid="today.summary.section"
           >
             <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
               <div className="flex items-center gap-2">
                 <span className="text-lg">📋</span>
-                <h2 className="text-sm font-bold text-amber-900 dark:text-amber-200">
+                <h2 className="text-sm font-bold text-primary">
                   Today's Order Summary
                 </h2>
-                <span className="text-xs text-amber-700 dark:text-amber-400 font-medium">
+                <span className="text-xs text-primary/70 font-medium">
                   {formatTodayDate()}
                 </span>
               </div>
               {todaySummary.length > 0 && (
-                <span className="text-xs bg-amber-200/70 dark:bg-amber-800/50 text-amber-800 dark:text-amber-200 px-2.5 py-1 rounded-full font-semibold">
+                <span className="text-xs bg-primary/15 text-primary px-2.5 py-1 rounded-full font-semibold">
                   {todayTotalItems} {todayTotalItems === 1 ? "item" : "items"}{" "}
                   today
                 </span>
@@ -350,13 +352,13 @@ export function AdminDashboard() {
                 {todaySummary.map(({ name, qty }) => (
                   <div
                     key={name}
-                    className="flex items-center justify-between bg-white/70 dark:bg-amber-900/30 border border-amber-200/80 dark:border-amber-700/40 rounded-lg px-3 py-2"
+                    className="flex items-center justify-between bg-card border border-primary/15 rounded-lg px-3 py-2"
                     data-ocid="today.summary.item.card"
                   >
-                    <span className="text-sm text-amber-900 dark:text-amber-100 font-medium truncate mr-2">
+                    <span className="text-sm text-foreground font-medium truncate mr-2">
                       {name}
                     </span>
-                    <span className="text-sm font-bold text-amber-600 dark:text-amber-400 shrink-0">
+                    <span className="text-sm font-bold text-primary shrink-0">
                       = {qty}
                     </span>
                   </div>
@@ -364,7 +366,7 @@ export function AdminDashboard() {
               </div>
             ) : (
               <p
-                className="text-sm text-amber-700/70 dark:text-amber-400/60 italic"
+                className="text-sm text-muted-foreground italic"
                 data-ocid="today.summary.empty_state"
               >
                 No orders placed today yet.
@@ -376,7 +378,9 @@ export function AdminDashboard() {
         {/* Stats bar */}
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h1 className="text-xl font-bold text-foreground">All Orders</h1>
+            <h1 className="font-display text-xl font-bold text-foreground">
+              All Orders
+            </h1>
             <p className="text-sm text-muted-foreground mt-0.5">
               {isFiltered && !loading
                 ? `Showing ${filteredOrders.length} of ${allOrders.length} orders`
@@ -722,7 +726,7 @@ function OrderCard({
 }) {
   return (
     <div
-      className={`bg-card border rounded-xl px-4 py-3 flex items-start sm:items-center gap-3 hover:border-primary/30 hover:bg-primary/5 transition-colors ${
+      className={`bg-card border rounded-xl px-5 py-4 flex items-start sm:items-center gap-3 hover:border-primary/30 hover:bg-primary/5 transition-colors ${
         isMostRecent
           ? "border-primary/50 bg-primary/5 ring-2 ring-primary/20"
           : "border-border"

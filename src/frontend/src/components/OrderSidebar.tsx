@@ -53,7 +53,7 @@ export function OrderSidebar({
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       {/* Back Button - mobile only */}
       {onBack && (
         <button
@@ -77,7 +77,7 @@ export function OrderSidebar({
           className="flex items-center justify-between px-4 py-3"
           style={{
             background:
-              "linear-gradient(135deg, oklch(0.22 0.08 255) 0%, oklch(0.30 0.12 255) 100%)",
+              "linear-gradient(135deg, oklch(0.20 0.10 258) 0%, oklch(0.28 0.14 258) 100%)",
           }}
         >
           <div className="flex items-center gap-2">
@@ -222,7 +222,7 @@ export function OrderSidebar({
                   </span>
                 </div>
                 <span
-                  className="text-2xl font-black tracking-tight"
+                  className="font-display text-2xl font-black tracking-tight"
                   style={{ color: "oklch(0.55 0.20 42)" }}
                 >
                   ₹{total}
@@ -235,7 +235,7 @@ export function OrderSidebar({
 
       {/* Order Form */}
       <div className="bg-card rounded-2xl border border-border shadow-card p-4">
-        <h2 className="font-semibold text-base text-foreground mb-3">
+        <h2 className="font-display font-semibold text-base text-foreground mb-3">
           Delivery Details
         </h2>
         <div className="space-y-3">
@@ -252,7 +252,7 @@ export function OrderSidebar({
               placeholder="Your full name"
               value={form.name}
               onChange={(e) => onFormChange("name", e.target.value)}
-              className={`w-full px-3 py-2 text-sm rounded-xl border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow ${
+              className={`w-full px-3 py-2.5 text-sm rounded-2xl border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow ${
                 formErrors.name ? "border-destructive" : "border-input"
               }`}
               data-ocid="order.name.input"
@@ -279,7 +279,7 @@ export function OrderSidebar({
               placeholder="e.g. Engineering, HR"
               value={form.department}
               onChange={(e) => onFormChange("department", e.target.value)}
-              className={`w-full px-3 py-2 text-sm rounded-xl border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow ${
+              className={`w-full px-3 py-2.5 text-sm rounded-2xl border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow ${
                 formErrors.department ? "border-destructive" : "border-input"
               }`}
               data-ocid="order.department.input"
@@ -306,7 +306,7 @@ export function OrderSidebar({
               placeholder="10-digit mobile number"
               value={form.phone}
               onChange={(e) => onFormChange("phone", e.target.value)}
-              className={`w-full px-3 py-2 text-sm rounded-xl border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow ${
+              className={`w-full px-3 py-2.5 text-sm rounded-2xl border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow ${
                 formErrors.phone ? "border-destructive" : "border-input"
               }`}
               data-ocid="order.phone.input"
@@ -342,7 +342,7 @@ export function OrderSidebar({
             <QrCode className="w-4 h-4 text-white" />
           </div>
           <h2
-            className="font-bold text-base"
+            className="font-display font-bold text-base"
             style={{ color: "oklch(0.28 0.09 42)" }}
           >
             Pay via UPI
@@ -540,10 +540,10 @@ export function OrderSidebar({
           }}
           data-ocid="order.submit_button"
         >
-          <span className="block text-xs font-semibold opacity-80 mb-0.5 tracking-wide uppercase">
+          <span className="block text-xs font-semibold opacity-80 mb-0.5 tracking-widest uppercase">
             Place Order
           </span>
-          <span className="block text-xl font-black tracking-tight">
+          <span className="font-display block text-xl font-black tracking-tight">
             ₹{total}
           </span>
         </button>

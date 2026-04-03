@@ -340,16 +340,16 @@ function MainApp() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-card border-b border-border shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-sm">
+            <div className="w-9 h-9 rounded-2xl bg-primary flex items-center justify-center shrink-0 shadow-sm">
               <ChefHat className="w-5 h-5 text-primary-foreground" />
             </div>
             <div className="flex flex-col leading-tight">
-              <span className="font-bold text-lg text-foreground leading-none tracking-tight">
+              <span className="font-display font-bold text-xl text-foreground leading-none tracking-tight">
                 Bonkers Bites
               </span>
-              <span className="text-[10px] text-muted-foreground italic tracking-wide leading-none mt-0.5">
+              <span className="text-[10px] text-muted-foreground/90 italic tracking-wide leading-none mt-0.5">
                 Fresh food, delivered at Bonkers 🚀
               </span>
             </div>
@@ -394,14 +394,14 @@ function MainApp() {
           style={{ background: "oklch(0.5 0.18 280)" }}
         />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-10 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 md:py-14 relative">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <motion.h1
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4 }}
-                className="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight"
+                className="font-display text-2xl sm:text-3xl md:text-4xl font-bold leading-tight"
               >
                 Fresh food,
                 <br />
@@ -508,8 +508,8 @@ function MainApp() {
       </section>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-6">
-        <div className="flex flex-col lg:flex-row gap-6">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-8">
+        <div className="flex flex-col lg:flex-row gap-8">
           {/* Menu Column */}
           <div className="flex-1 min-w-0">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -527,15 +527,15 @@ function MainApp() {
                       onClick={() => setActiveTab(cat.key)}
                       data-ocid={`menu.${cat.key}.tab`}
                       className={[
-                        "relative px-5 py-3 text-sm font-medium transition-all duration-200 focus:outline-none whitespace-nowrap rounded-t-lg",
+                        "relative px-6 py-3.5 text-sm font-medium transition-all duration-200 focus:outline-none whitespace-nowrap rounded-t-lg",
                         isActive
-                          ? "text-primary"
+                          ? "text-primary font-semibold bg-primary/5 rounded-t-xl"
                           : "text-muted-foreground hover:text-primary hover:bg-primary/5",
                       ].join(" ")}
                     >
                       {cat.label}
                       {isActive && (
-                        <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />
+                        <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-primary rounded-t-full" />
                       )}
                     </button>
                   );
@@ -557,7 +557,7 @@ function MainApp() {
                       id="restaurant-select"
                       value={selectedRestaurant}
                       onChange={(e) => handleRestaurantChange(e.target.value)}
-                      className="w-full appearance-none bg-card border-2 border-border rounded-xl px-4 py-3 pr-10 text-sm font-medium text-foreground shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none hover:border-primary/60 transition-all duration-200 cursor-pointer"
+                      className="w-full appearance-none bg-card border-2 border-border rounded-xl px-4 py-3.5 pr-10 text-sm font-medium text-foreground shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none hover:border-primary/60 transition-all duration-200 cursor-pointer"
                       data-ocid="breakfast.restaurant.select"
                     >
                       <option value="">— Select a restaurant —</option>
@@ -614,9 +614,9 @@ function MainApp() {
                               data-ocid={`breakfast.item.${idx + 1}`}
                             >
                               {/* Emoji image area — richer gradient */}
-                              <div className="h-28 menu-card-header flex items-center justify-center relative overflow-hidden">
+                              <div className="h-32 menu-card-header flex items-center justify-center relative overflow-hidden">
                                 <span
-                                  className="text-4xl group-hover:scale-110 transition-transform duration-300 ease-out select-none"
+                                  className="text-5xl group-hover:scale-110 transition-transform duration-300 ease-out select-none"
                                   style={{
                                     filter:
                                       "drop-shadow(0 2px 8px rgba(0,0,0,0.12))",
@@ -625,15 +625,15 @@ function MainApp() {
                                   {emoji}
                                 </span>
                               </div>
-                              <div className="p-3 pt-2.5">
-                                <p className="font-semibold text-sm text-foreground leading-tight mb-1.5 line-clamp-2">
+                              <div className="p-4">
+                                <p className="font-display font-semibold text-sm text-foreground leading-tight mb-1.5 line-clamp-2">
                                   {item.name}
                                 </p>
-                                <p className="text-accent font-bold text-sm mb-2.5">
+                                <p className="text-accent font-bold text-base mb-2.5">
                                   ₹{item.price}
                                 </p>
                                 {cartItem ? (
-                                  <div className="flex items-center justify-between bg-muted rounded-xl px-1 py-0.5">
+                                  <div className="flex items-center justify-between bg-muted rounded-full px-1 py-0.5">
                                     <button
                                       type="button"
                                       onClick={() =>
@@ -662,7 +662,7 @@ function MainApp() {
                                   <button
                                     type="button"
                                     onClick={() => handleRestaurantAdd(item.id)}
-                                    className="w-full py-2 rounded-xl bg-accent text-white text-xs font-bold hover:brightness-110 active:scale-95 transition-all duration-150 shadow-sm"
+                                    className="w-full py-2.5 rounded-full bg-accent text-white text-xs font-bold hover:brightness-110 active:scale-95 transition-all duration-150 shadow-sm"
                                     data-ocid={`breakfast.item.${idx + 1}.primary_button`}
                                   >
                                     Add to Cart
@@ -694,7 +694,7 @@ function MainApp() {
                       onChange={(e) =>
                         handleLunchRestaurantChange(e.target.value)
                       }
-                      className="w-full appearance-none bg-card border-2 border-border rounded-xl px-4 py-3 pr-10 text-sm font-medium text-foreground shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none hover:border-primary/60 transition-all duration-200 cursor-pointer"
+                      className="w-full appearance-none bg-card border-2 border-border rounded-xl px-4 py-3.5 pr-10 text-sm font-medium text-foreground shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none hover:border-primary/60 transition-all duration-200 cursor-pointer"
                       data-ocid="lunch.restaurant.select"
                     >
                       <option value="">— Select a restaurant —</option>
@@ -750,9 +750,9 @@ function MainApp() {
                               data-ocid={`lunch.item.${idx + 1}`}
                             >
                               {/* Emoji image area — richer gradient */}
-                              <div className="h-28 menu-card-header flex items-center justify-center relative overflow-hidden">
+                              <div className="h-32 menu-card-header flex items-center justify-center relative overflow-hidden">
                                 <span
-                                  className="text-4xl group-hover:scale-110 transition-transform duration-300 ease-out select-none"
+                                  className="text-5xl group-hover:scale-110 transition-transform duration-300 ease-out select-none"
                                   style={{
                                     filter:
                                       "drop-shadow(0 2px 8px rgba(0,0,0,0.12))",
@@ -761,15 +761,15 @@ function MainApp() {
                                   {emoji}
                                 </span>
                               </div>
-                              <div className="p-3 pt-2.5">
-                                <p className="font-semibold text-sm text-foreground leading-tight mb-1.5 line-clamp-2">
+                              <div className="p-4">
+                                <p className="font-display font-semibold text-sm text-foreground leading-tight mb-1.5 line-clamp-2">
                                   {item.name}
                                 </p>
-                                <p className="text-accent font-bold text-sm mb-2.5">
+                                <p className="text-accent font-bold text-base mb-2.5">
                                   ₹{item.price}
                                 </p>
                                 {cartItem ? (
-                                  <div className="flex items-center justify-between bg-muted rounded-xl px-1 py-0.5">
+                                  <div className="flex items-center justify-between bg-muted rounded-full px-1 py-0.5">
                                     <button
                                       type="button"
                                       onClick={() =>
@@ -796,7 +796,7 @@ function MainApp() {
                                   <button
                                     type="button"
                                     onClick={() => handleLunchAdd(item.id)}
-                                    className="w-full py-2 rounded-xl bg-accent text-white text-xs font-bold hover:brightness-110 active:scale-95 transition-all duration-150 shadow-sm"
+                                    className="w-full py-2.5 rounded-full bg-accent text-white text-xs font-bold hover:brightness-110 active:scale-95 transition-all duration-150 shadow-sm"
                                     data-ocid={`lunch.item.${idx + 1}.primary_button`}
                                   >
                                     Add to Cart
@@ -814,7 +814,7 @@ function MainApp() {
 
               {/* Snacks tab */}
               <TabsContent key="snacks" value="snacks" className="mt-0">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
                   {menuItems
                     .filter((item) => item.category === "snacks")
                     .map((item) => (
@@ -833,7 +833,7 @@ function MainApp() {
 
           {/* Sidebar - Desktop */}
           <aside className="hidden lg:block w-80 shrink-0">
-            <div className="sticky top-20">
+            <div className="sticky top-[72px]">
               <OrderSidebar
                 cartItems={cart}
                 restaurantCartItems={[...restaurantCart, ...lunchCart]}
@@ -905,7 +905,7 @@ function MainApp() {
           <button
             type="button"
             onClick={() => setShowOrderPanel(true)}
-            className="px-4 py-2 bg-accent text-accent-foreground text-sm font-semibold rounded-xl hover:brightness-110 active:scale-[0.98] transition-all duration-150"
+            className="px-4 py-2 bg-accent text-accent-foreground text-sm font-semibold rounded-full hover:brightness-110 active:scale-[0.98] transition-all duration-150"
             data-ocid="order.open_modal_button"
           >
             View Order
@@ -926,8 +926,8 @@ function MainApp() {
       </AnimatePresence>
 
       {/* Footer */}
-      <footer className="border-t border-border bg-card mt-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 text-center">
+      <footer className="border-t border-border bg-card mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 text-center">
           <p className="text-xs text-muted-foreground">
             © {currentYear}. Built with ❤️ using{" "}
             <a

@@ -18,7 +18,7 @@ export function MenuItemCard({
 
   return (
     <div
-      className={`group bg-card rounded-2xl border overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-[transform,box-shadow,border-color] duration-300 cursor-pointer ${
+      className={`group bg-card rounded-2xl border overflow-hidden shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-[transform,box-shadow,border-color] duration-300 cursor-pointer ${
         isSelected
           ? "border-accent ring-1 ring-accent/30"
           : "border-border hover:border-accent/40"
@@ -51,15 +51,17 @@ export function MenuItemCard({
           </div>
         )}
       </div>
-      <div className="p-3">
-        <h3 className="font-semibold text-sm text-foreground leading-tight mb-1">
+      <div className="p-4">
+        <h3 className="font-display font-semibold text-sm text-foreground leading-tight mb-1.5">
           {item.name}
         </h3>
-        <p className="text-xs text-muted-foreground leading-snug mb-2">
+        <p className="text-xs text-muted-foreground leading-snug mb-3">
           {item.description}
         </p>
         <div className="flex items-center justify-between">
-          <span className="font-bold text-sm text-accent">₹{item.price}</span>
+          <span className="font-display font-bold text-base text-accent">
+            ₹{item.price}
+          </span>
           {isSelected ? (
             <div className="flex items-center gap-1.5">
               <button
@@ -86,7 +88,7 @@ export function MenuItemCard({
             <button
               type="button"
               onClick={() => onToggle(item)}
-              className="rounded-full bg-accent text-accent-foreground px-4 py-1.5 text-xs font-bold hover:brightness-110 active:scale-95 transition-all duration-150"
+              className="rounded-full bg-accent text-accent-foreground px-4 py-2 text-xs font-bold hover:brightness-110 active:scale-95 transition-all duration-150"
               data-ocid={`menu.item.${item.id}.button`}
             >
               Add
