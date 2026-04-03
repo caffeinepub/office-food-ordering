@@ -270,6 +270,19 @@ export const lunchMenus: Record<
     { id: "rcl-29", name: "Fresh Lime Soda", price: 60 },
     { id: "rcl-30", name: "Ginger Lemon", price: 50 },
   ],
+  "Anna Cafe": [
+    { id: "acl-1", name: "Plain Masala Maggi", price: 60 },
+    { id: "acl-2", name: "Paneer Maggi", price: 100 },
+    { id: "acl-3", name: "Curd Rice", price: 120 },
+    { id: "acl-4", name: "Rasam Rice", price: 150 },
+    { id: "acl-5", name: "Veg Pulav", price: 130 },
+    { id: "acl-6", name: "Paneer Pulav", price: 175 },
+    { id: "acl-7", name: "Dal Khichadi", price: 120 },
+    { id: "acl-8", name: "Veg Biryani", price: 150 },
+    { id: "acl-9", name: "Soya Biryani", price: 160 },
+    { id: "acl-10", name: "Paneer Biryani", price: 195 },
+    { id: "acl-11", name: "Mushroom Biryani", price: 195 },
+  ],
 };
 
-export const LUNCH_RESTAURANTS = ["Ruchi Cafe"] as const;
+export const LUNCH_RESTAURANTS = ["Ruchi Cafe", "Anna Cafe"] as const;
