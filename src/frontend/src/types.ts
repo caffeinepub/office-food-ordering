@@ -23,6 +23,7 @@ export interface RestaurantMenuItem {
   id: string;
   name: string;
   price: number;
+  image?: string;
 }
 
 export interface RestaurantCartItem {

@@ -1,5 +1,5 @@
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, ShoppingBag, Smartphone } from "lucide-react";
+import { ArrowLeft, QrCode, Receipt, ShoppingBag } from "lucide-react";
 import { useState } from "react";
 import type { CartItem, OrderForm, RestaurantCartItem } from "../types";
 
@@ -69,92 +69,172 @@ export function OrderSidebar({
 
       {/* Order Summary */}
       <div
-        className="bg-card rounded-xl border border-border shadow-sm p-4"
+        className="bg-card rounded-2xl border border-border shadow-card overflow-hidden"
         data-ocid="order.panel"
       >
-        <div className="flex items-center gap-2 mb-3">
-          <ShoppingBag className="w-4 h-4 text-primary" />
-          <h2 className="font-semibold text-base text-foreground">
-            Order Summary
-          </h2>
+        {/* Card Header with gradient */}
+        <div
+          className="flex items-center justify-between px-4 py-3"
+          style={{
+            background:
+              "linear-gradient(135deg, oklch(0.22 0.08 255) 0%, oklch(0.30 0.12 255) 100%)",
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
+              <ShoppingBag className="w-4 h-4 text-white" />
+            </div>
+            <h2 className="font-bold text-base text-white tracking-tight">
+              Order Summary
+            </h2>
+          </div>
+          {allItemCount > 0 && (
+            <span
+              className="text-xs font-bold px-2.5 py-1 rounded-full"
+              style={{
+                background: "oklch(0.68 0.21 42)",
+                color: "white",
+              }}
+            >
+              {allItemCount} item{allItemCount !== 1 ? "s" : ""}
+            </span>
+          )}
         </div>
 
-        {allItemCount === 0 ? (
-          <div className="text-center py-6" data-ocid="order.empty_state">
-            <p className="text-muted-foreground text-sm">No items added yet</p>
-            <p className="text-muted-foreground text-xs mt-1">
-              Browse the menu and add items
-            </p>
-          </div>
-        ) : (
-          <>
-            {/* Restaurant label if applicable */}
-            {selectedRestaurant && restaurantCartItems.length > 0 && (
-              <div className="mb-2">
-                <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                  🏪 {selectedRestaurant}
+        <div className="p-4">
+          {allItemCount === 0 ? (
+            <div className="text-center py-8" data-ocid="order.empty_state">
+              <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-3">
+                <ShoppingBag className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <p className="text-sm font-semibold text-foreground mb-1">
+                Your cart is empty
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Browse the menu and add items to get started
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Restaurant label if applicable */}
+              {selectedRestaurant && restaurantCartItems.length > 0 && (
+                <div className="mb-3">
+                  <span className="text-xs font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
+                    🏪 {selectedRestaurant}
+                  </span>
+                </div>
+              )}
+
+              {/* Items list */}
+              <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                {restaurantCartItems.map((ci, i) => (
+                  <div
+                    key={ci.item.id}
+                    className="flex justify-between items-center gap-2 px-2.5 py-2 rounded-xl transition-colors"
+                    style={{
+                      background:
+                        i % 2 === 0 ? "oklch(0.97 0.004 255)" : "transparent",
+                      borderLeft: "3px solid oklch(0.68 0.21 42)",
+                    }}
+                    data-ocid={`order.item.${i + 1}`}
+                  >
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="text-sm text-foreground font-medium leading-snug line-clamp-1 flex-1">
+                        {ci.item.name}
+                      </span>
+                      <span
+                        className="text-xs font-bold px-1.5 py-0.5 rounded-md shrink-0"
+                        style={{
+                          background: "oklch(0.93 0.05 42)",
+                          color: "oklch(0.38 0.12 42)",
+                        }}
+                      >
+                        &times;{ci.quantity}
+                      </span>
+                    </div>
+                    <span className="text-sm font-bold text-foreground shrink-0">
+                      ₹{ci.item.price * ci.quantity}
+                    </span>
+                  </div>
+                ))}
+                {cartItems.length > 0 && restaurantCartItems.length > 0 && (
+                  <Separator className="my-1" />
+                )}
+                {cartItems.map((ci, i) => (
+                  <div
+                    key={ci.item.id}
+                    className="flex justify-between items-center gap-2 px-2.5 py-2 rounded-xl transition-colors"
+                    style={{
+                      background:
+                        (restaurantCartItems.length + i) % 2 === 0
+                          ? "oklch(0.97 0.004 255)"
+                          : "transparent",
+                      borderLeft: "3px solid oklch(0.68 0.21 42)",
+                    }}
+                    data-ocid={`order.item.${restaurantCartItems.length + i + 1}`}
+                  >
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="text-sm text-foreground font-medium leading-snug line-clamp-1 flex-1">
+                        {ci.item.name}
+                      </span>
+                      <span
+                        className="text-xs font-bold px-1.5 py-0.5 rounded-md shrink-0"
+                        style={{
+                          background: "oklch(0.93 0.05 42)",
+                          color: "oklch(0.38 0.12 42)",
+                        }}
+                      >
+                        &times;{ci.quantity}
+                      </span>
+                    </div>
+                    <span className="text-sm font-bold text-foreground shrink-0">
+                      ₹{ci.item.price * ci.quantity}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Subtotal row */}
+              <div className="flex justify-between items-center mt-3 px-1">
+                <span className="text-xs text-muted-foreground">Subtotal</span>
+                <span className="text-xs text-muted-foreground">₹{total}</span>
+              </div>
+
+              {/* Total — prominent highlight row */}
+              <div
+                className="flex justify-between items-center mt-2 rounded-xl px-3 py-3"
+                style={{
+                  background:
+                    "linear-gradient(135deg, oklch(0.96 0.04 42) 0%, oklch(0.98 0.02 42) 100%)",
+                  border: "1.5px solid oklch(0.85 0.09 42)",
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <Receipt
+                    className="w-4 h-4"
+                    style={{ color: "oklch(0.52 0.15 42)" }}
+                  />
+                  <span
+                    className="text-sm font-bold"
+                    style={{ color: "oklch(0.30 0.10 42)" }}
+                  >
+                    Total
+                  </span>
+                </div>
+                <span
+                  className="text-2xl font-black tracking-tight"
+                  style={{ color: "oklch(0.55 0.20 42)" }}
+                >
+                  ₹{total}
                 </span>
               </div>
-            )}
-
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {restaurantCartItems.map((ci, i) => (
-                <div
-                  key={ci.item.id}
-                  className="flex justify-between items-center"
-                  data-ocid={`order.item.${i + 1}`}
-                >
-                  <div>
-                    <span className="text-sm text-foreground font-medium">
-                      {ci.item.name}
-                    </span>
-                    <span className="text-xs text-muted-foreground ml-1">
-                      ×{ci.quantity}
-                    </span>
-                  </div>
-                  <span className="text-sm font-semibold text-foreground">
-                    ₹{ci.item.price * ci.quantity}
-                  </span>
-                </div>
-              ))}
-              {cartItems.length > 0 && restaurantCartItems.length > 0 && (
-                <Separator className="my-1" />
-              )}
-              {cartItems.map((ci, i) => (
-                <div
-                  key={ci.item.id}
-                  className="flex justify-between items-center"
-                  data-ocid={`order.item.${restaurantCartItems.length + i + 1}`}
-                >
-                  <div>
-                    <span className="text-sm text-foreground font-medium">
-                      {ci.item.name}
-                    </span>
-                    <span className="text-xs text-muted-foreground ml-1">
-                      ×{ci.quantity}
-                    </span>
-                  </div>
-                  <span className="text-sm font-semibold text-foreground">
-                    ₹{ci.item.price * ci.quantity}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <Separator className="my-3" />
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Subtotal</span>
-              <span className="text-sm text-foreground">₹{total}</span>
-            </div>
-            <div className="flex justify-between items-center mt-1">
-              <span className="text-base font-bold text-foreground">Total</span>
-              <span className="text-base font-bold text-primary">₹{total}</span>
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
 
       {/* Order Form */}
-      <div className="bg-card rounded-xl border border-border shadow-sm p-4">
+      <div className="bg-card rounded-2xl border border-border shadow-card p-4">
         <h2 className="font-semibold text-base text-foreground mb-3">
           Delivery Details
         </h2>
@@ -172,7 +252,7 @@ export function OrderSidebar({
               placeholder="Your full name"
               value={form.name}
               onChange={(e) => onFormChange("name", e.target.value)}
-              className={`w-full px-3 py-2 text-sm rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow ${
+              className={`w-full px-3 py-2 text-sm rounded-xl border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow ${
                 formErrors.name ? "border-destructive" : "border-input"
               }`}
               data-ocid="order.name.input"
@@ -199,7 +279,7 @@ export function OrderSidebar({
               placeholder="e.g. Engineering, HR"
               value={form.department}
               onChange={(e) => onFormChange("department", e.target.value)}
-              className={`w-full px-3 py-2 text-sm rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow ${
+              className={`w-full px-3 py-2 text-sm rounded-xl border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow ${
                 formErrors.department ? "border-destructive" : "border-input"
               }`}
               data-ocid="order.department.input"
@@ -226,7 +306,7 @@ export function OrderSidebar({
               placeholder="10-digit mobile number"
               value={form.phone}
               onChange={(e) => onFormChange("phone", e.target.value)}
-              className={`w-full px-3 py-2 text-sm rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow ${
+              className={`w-full px-3 py-2 text-sm rounded-xl border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow ${
                 formErrors.phone ? "border-destructive" : "border-input"
               }`}
               data-ocid="order.phone.input"
@@ -243,66 +323,168 @@ export function OrderSidebar({
         </div>
       </div>
 
-      {/* Payment Section */}
+      {/* Payment Section — on-brand, visually distinct */}
       <div
-        className="rounded-xl border-2 border-amber-400 bg-amber-50 shadow-sm p-4"
+        className="rounded-2xl border-2 shadow-card p-5"
+        style={{
+          borderColor: "oklch(0.75 0.12 42)",
+          background:
+            "linear-gradient(160deg, oklch(0.99 0.008 55) 0%, oklch(0.97 0.015 42) 100%)",
+        }}
         data-ocid="order.payment_section"
       >
-        <div className="flex items-center gap-2 mb-3">
-          <Smartphone className="w-4 h-4 text-amber-600" />
-          <h2 className="font-semibold text-base text-amber-800">
+        {/* Header */}
+        <div className="flex items-center gap-2 mb-4">
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center"
+            style={{ background: "oklch(0.68 0.21 42)" }}
+          >
+            <QrCode className="w-4 h-4 text-white" />
+          </div>
+          <h2
+            className="font-bold text-base"
+            style={{ color: "oklch(0.28 0.09 42)" }}
+          >
             Pay via UPI
           </h2>
+          <span
+            className="ml-auto text-xs font-bold px-3 py-1 rounded-full"
+            style={{
+              background: "oklch(0.68 0.21 42)",
+              color: "white",
+            }}
+          >
+            Scan &amp; Pay
+          </span>
         </div>
 
-        {/* UPI Info */}
-        <div className="bg-white rounded-lg border border-amber-200 p-3 mb-3 text-center">
-          <p className="text-sm font-bold text-amber-900">
+        <Separator
+          className="mb-4"
+          style={{ background: "oklch(0.88 0.07 42)" }}
+        />
+
+        {/* UPI Info block */}
+        <div
+          className="rounded-xl border p-4 mb-5 text-center"
+          style={{
+            borderColor: "oklch(0.85 0.08 42)",
+            background: "white",
+          }}
+        >
+          <p
+            className="text-base font-bold mb-2"
+            style={{ color: "oklch(0.24 0.09 42)" }}
+          >
             Pay via UPI to Sanjay
           </p>
-          <p className="text-xs text-amber-700 mt-1 break-all font-medium">
-            UPI ID: sanjayshegar1990@okaxis
+          <div className="flex items-center justify-center gap-2 flex-wrap">
+            <span
+              className="text-xs font-bold px-2 py-0.5 rounded-md uppercase tracking-wide"
+              style={{
+                background: "oklch(0.68 0.21 42)",
+                color: "white",
+              }}
+            >
+              UPI
+            </span>
+            <span
+              className="font-mono text-sm px-3 py-1 rounded-lg border inline-block"
+              style={{
+                background: "oklch(0.97 0.015 42)",
+                borderColor: "oklch(0.85 0.08 42)",
+                color: "oklch(0.30 0.10 42)",
+              }}
+            >
+              sanjayshegar1990@okaxis
+            </span>
+          </div>
+        </div>
+
+        {/* QR Code — centered, larger */}
+        <div className="flex flex-col items-center mb-5 gap-3">
+          <div
+            className="rounded-2xl p-4 shadow-md mx-auto"
+            style={{
+              background: "white",
+              border: "1.5px solid oklch(0.88 0.07 42)",
+            }}
+          >
+            {!qrError ? (
+              <img
+                src="/assets/uploads/image-019d2ef5-6746-75cb-a591-1a2c5696ec85-1.png"
+                alt="UPI QR Code - Scan to pay Sanjay"
+                className="w-64 h-64 object-contain"
+                onError={() => setQrError(true)}
+              />
+            ) : (
+              <div
+                className="w-64 h-64 rounded-xl flex flex-col items-center justify-center gap-2"
+                style={{ border: "2px dashed oklch(0.80 0.10 42)" }}
+              >
+                <QrCode
+                  className="w-10 h-10"
+                  style={{ color: "oklch(0.70 0.12 42)" }}
+                />
+                <p
+                  className="text-xs px-4 text-center"
+                  style={{ color: "oklch(0.60 0.09 42)" }}
+                >
+                  QR Code unavailable
+                </p>
+              </div>
+            )}
+          </div>
+          <p
+            className="text-sm font-medium text-center"
+            style={{ color: "oklch(0.48 0.09 42)" }}
+          >
+            Scan with any UPI app to pay
           </p>
         </div>
 
-        {/* QR Code */}
-        <div className="flex flex-col items-center mb-3 gap-2">
-          {!qrError ? (
-            <img
-              src="/assets/uploads/image-019d2ef5-6746-75cb-a591-1a2c5696ec85-1.png"
-              alt="UPI QR Code - Scan to pay Sanjay"
-              className="w-56 h-56 object-contain rounded-lg border border-amber-200 bg-white p-2"
-              onError={() => setQrError(true)}
-            />
-          ) : (
-            <div className="w-56 h-56 rounded-lg border-2 border-dashed border-amber-300 bg-white flex flex-col items-center justify-center gap-1">
-              <Smartphone className="w-10 h-10 text-amber-300" />
-              <p className="text-xs text-amber-400 text-center px-2">QR Code</p>
-            </div>
-          )}
-          <p className="text-xs text-amber-700 font-medium text-center">
-            Scan to pay with any UPI app
-          </p>
-        </div>
-
-        {/* Amount */}
-        <div className="flex justify-between items-center bg-white rounded-lg border border-amber-200 px-3 py-2 mb-3">
-          <span className="text-sm text-amber-700">Amount Due</span>
-          <span className="text-base font-bold text-amber-900">₹{total}</span>
+        {/* Amount due — prominent */}
+        <div
+          className="flex justify-between items-center rounded-xl px-4 py-4 mb-4"
+          style={{
+            background:
+              "linear-gradient(135deg, oklch(0.96 0.04 42) 0%, oklch(0.98 0.02 42) 100%)",
+            border: "1.5px solid oklch(0.82 0.10 42)",
+          }}
+        >
+          <span
+            className="text-sm font-bold"
+            style={{ color: "oklch(0.36 0.10 42)" }}
+          >
+            Amount Due
+          </span>
+          <span
+            className="text-xl font-black tracking-tight"
+            style={{ color: "oklch(0.55 0.20 42)" }}
+          >
+            ₹{total}
+          </span>
         </div>
 
         {/* Instruction */}
-        <p className="text-xs text-amber-700 text-center mb-3 font-medium">
-          ⚠️ Please complete payment before placing order
+        <p
+          className="text-xs text-center mb-4 font-medium"
+          style={{ color: "oklch(0.52 0.10 42)" }}
+        >
+          ⚠️ Complete payment before placing your order
         </p>
 
-        {/* Confirmation Checkbox */}
+        {/* Confirmation checkbox */}
         <label
-          className={`flex items-start gap-2.5 cursor-pointer p-2.5 rounded-lg border ${
+          className={`flex items-start gap-3 cursor-pointer p-4 rounded-xl border transition-colors ${
             paymentError
               ? "border-red-400 bg-red-50"
-              : "border-amber-200 bg-white"
+              : "border-transparent bg-white/70 hover:bg-white"
           }`}
+          style={{
+            border: paymentError
+              ? undefined
+              : "1.5px solid oklch(0.85 0.08 42)",
+          }}
         >
           <input
             type="checkbox"
@@ -311,20 +493,25 @@ export function OrderSidebar({
               setPaymentConfirmed(e.target.checked);
               if (e.target.checked) setPaymentError(false);
             }}
-            className="mt-0.5 w-4 h-4 accent-amber-500 shrink-0"
+            className="mt-0.5 w-4 h-4 shrink-0"
+            style={{ accentColor: "oklch(0.68 0.21 42)" }}
             data-ocid="order.payment_confirmed.checkbox"
           />
           <span
             className={`text-sm font-medium leading-snug ${
-              paymentError ? "text-red-700" : "text-amber-800"
+              paymentError ? "text-red-700" : ""
             }`}
+            style={!paymentError ? { color: "oklch(0.30 0.09 42)" } : {}}
           >
             I have completed the payment
           </span>
         </label>
         {paymentError && (
-          <p className="text-xs text-red-600 mt-1.5 text-center font-medium">
-            Please complete payment before placing order
+          <p
+            className="text-xs text-red-600 mt-1.5 text-center font-medium"
+            data-ocid="order.payment.error_state"
+          >
+            Please confirm payment before placing your order
           </p>
         )}
       </div>
@@ -332,7 +519,7 @@ export function OrderSidebar({
       {/* Submit Button */}
       {submitted ? (
         <div
-          className="w-full py-3 rounded-lg bg-green-100 border border-green-300 text-center"
+          className="w-full py-3 rounded-2xl bg-green-100 border border-green-300 text-center"
           data-ocid="order.success_state"
         >
           <p className="text-sm font-semibold text-green-800">
@@ -344,10 +531,21 @@ export function OrderSidebar({
           type="button"
           onClick={handleSubmitClick}
           disabled={!paymentConfirmed}
-          className="w-full py-3 bg-primary text-primary-foreground font-semibold text-sm rounded-lg transition-opacity disabled:opacity-40 disabled:cursor-not-allowed hover:enabled:opacity-90"
+          className="w-full py-4 font-black text-base rounded-2xl transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed hover:enabled:opacity-90 shadow-md"
+          style={{
+            background: paymentConfirmed
+              ? "linear-gradient(135deg, oklch(0.62 0.20 42) 0%, oklch(0.70 0.22 42) 100%)"
+              : "oklch(0.75 0.08 42)",
+            color: "white",
+          }}
           data-ocid="order.submit_button"
         >
-          Submit Order — ₹{total}
+          <span className="block text-xs font-semibold opacity-80 mb-0.5 tracking-wide uppercase">
+            Place Order
+          </span>
+          <span className="block text-xl font-black tracking-tight">
+            ₹{total}
+          </span>
         </button>
       )}
     </div>
