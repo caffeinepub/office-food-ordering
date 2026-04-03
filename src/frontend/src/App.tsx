@@ -40,57 +40,227 @@ function getRestaurantLabel(name: string): string {
   return `${emoji} ${name}`;
 }
 
-// Food emoji mapping based on item name keywords
-function getMenuItemEmoji(name: string): string {
+// Exact name → unique image mapping for every menu item
+const ITEM_IMAGE_MAP: Record<string, string> = {
+  // ── Idli variants ──
+  Idli: "/assets/generated/plain-idli.dim_400x300.jpg",
+  "Idli (2 pcs)": "/assets/generated/plain-idli.dim_400x300.jpg",
+  "Steam Idli": "/assets/generated/idli.dim_400x300.jpg",
+  "Butter Idli": "/assets/generated/butter-idli.dim_400x300.jpg",
+  "Masala Idli": "/assets/generated/masala-idli.dim_400x300.jpg",
+  "Rasam Idli": "/assets/generated/rasam-idli.dim_400x300.jpg",
+  "Idli Vada": "/assets/generated/idli-vada.dim_400x300.jpg",
+  "Idli Sambar": "/assets/generated/idli-sambar.dim_400x300.jpg",
+
+  // ── Vada variants ──
+  "Medu Vada": "/assets/generated/medu-vada.dim_400x300.jpg",
+  "Medu Vada (2 pcs)": "/assets/generated/medu-vada.dim_400x300.jpg",
+  "Masala Vada": "/assets/generated/masala-vada.dim_400x300.jpg",
+  "Rasam Wada": "/assets/generated/rasam-wada.dim_400x300.jpg",
+  "Sabudana Vada": "/assets/generated/sabudana-vada.dim_400x300.jpg",
+  "Batata Vada Usal": "/assets/generated/batata-vada-usal.dim_400x300.jpg",
+  "Wada Pav": "/assets/generated/wada-pav.dim_400x300.jpg",
+  "Vada Pav": "/assets/generated/vada-pav.dim_400x300.jpg",
+
+  // ── Poha / Upma / Sheera ──
+  Poha: "/assets/generated/poha.dim_400x300.jpg",
+  "Kanda Poha": "/assets/generated/kanda-poha.dim_400x300.jpg",
+  Upma: "/assets/generated/upma.dim_400x300.jpg",
+  Sheera: "/assets/generated/sheera.dim_400x300.jpg",
+  "Sheera Upma Mix": "/assets/generated/sheera-upma-mix.dim_400x300.jpg",
+  "Sabudana Khichdi": "/assets/generated/sabudana-khichdi.dim_400x300.jpg",
+  "Sabudana Khichadi": "/assets/generated/sabudana-khichdi.dim_400x300.jpg",
+
+  // ── Puri / Pav ──
+  "Puri Bhaji": "/assets/generated/puri-bhaji.dim_400x300.jpg",
+  "Misal Pav": "/assets/generated/misal-pav.dim_400x300.jpg",
+  "Usal Pav": "/assets/generated/usal-pav.dim_400x300.jpg",
+  "Pav Bhaji": "/assets/generated/pav-bhaji.dim_400x300.jpg",
+  "Masala Pav": "/assets/generated/masala-pav.dim_400x300.jpg",
+  "Cheese Pav Bhaji": "/assets/generated/cheese-pav-bhaji.dim_400x300.jpg",
+  "Bhaji Pav": "/assets/generated/bhaji-pav.dim_400x300.jpg",
+
+  // ── Dosa variants ──
+  "Sada Dosa": "/assets/generated/sada-dosa.dim_400x300.jpg",
+  "Mysore Sada Dosa": "/assets/generated/mysore-sada-dosa.dim_400x300.jpg",
+  "Masala Dosa": "/assets/generated/masala-dosa.dim_400x300.jpg",
+  "Mysore Masala Dosa": "/assets/generated/mysore-masala-dosa.dim_400x300.jpg",
+  "Rava Sada Dosa": "/assets/generated/rava-sada-dosa.dim_400x300.jpg",
+  "Onion Rava Sada": "/assets/generated/onion-rava-sada-dosa.dim_400x300.jpg",
+  "Rava Masala Dosa": "/assets/generated/rava-masala-dosa.dim_400x300.jpg",
+  "Ragi Rava Masala": "/assets/generated/ragi-rava-masala-dosa.dim_400x300.jpg",
+  "Butter Sada Dosa": "/assets/generated/butter-sada-dosa.dim_400x300.jpg",
+  "Cheese Sada Dosa": "/assets/generated/cheese-sada-dosa.dim_400x300.jpg",
+  "Onion Sada Dosa": "/assets/generated/onion-sada-dosa.dim_400x300.jpg",
+  "Butter Masala Dosa": "/assets/generated/butter-masala-dosa.dim_400x300.jpg",
+  "Mysore Rava Masala Dosa":
+    "/assets/generated/mysore-rava-masala-dosa.dim_400x300.jpg",
+  "Schezwan Sada Dosa": "/assets/generated/schezwan-sada-dosa.dim_400x300.jpg",
+
+  // ── Uttapam / Uthappa variants ──
+  "Sada Uttapam": "/assets/generated/sada-uttapam.dim_400x300.jpg",
+  "Sada Uthappa": "/assets/generated/sada-uttapam.dim_400x300.jpg",
+  "Sada Uttappa (2 pcs)": "/assets/generated/sada-uttapam.dim_400x300.jpg",
+  "Onion Uttapam": "/assets/generated/onion-uttapam.dim_400x300.jpg",
+  "Onion Uthappa": "/assets/generated/onion-uttapam.dim_400x300.jpg",
+  "Onion Uttappa": "/assets/generated/onion-uttapam.dim_400x300.jpg",
+  "Masala Uttapam": "/assets/generated/masala-uttapam.dim_400x300.jpg",
+  "Masala Uthappa": "/assets/generated/masala-uttapam.dim_400x300.jpg",
+  "Masala Uttappa": "/assets/generated/masala-uttapam.dim_400x300.jpg",
+  "Cheese Uttapam": "/assets/generated/cheese-uttapam.dim_400x300.jpg",
+  "Cheese Uttappa": "/assets/generated/cheese-uttapam.dim_400x300.jpg",
+  "Veg Uttapam": "/assets/generated/veg-uttapam.dim_400x300.jpg",
+  "Veg Uttappa": "/assets/generated/veg-uttapam.dim_400x300.jpg",
+  "Vegetable Uthappa": "/assets/generated/vegetable-uttapam.dim_400x300.jpg",
+  "Butter Onion Uthappa":
+    "/assets/generated/butter-onion-uttapam.dim_400x300.jpg",
+  "Butter Masala Uthappa":
+    "/assets/generated/butter-masala-uttapam.dim_400x300.jpg",
+  "Mysore Sada Uthappa":
+    "/assets/generated/mysore-sada-uttapam.dim_400x300.jpg",
+
+  // ── Biryani variants ──
+  "Paneer Biryani": "/assets/generated/paneer-biryani.dim_400x300.jpg",
+  "Veg Biryani": "/assets/generated/veg-biryani.dim_400x300.jpg",
+  "Soya Bean Biryani": "/assets/generated/soya-biryani.dim_400x300.jpg",
+  "Soya Biryani": "/assets/generated/soya-biryani.dim_400x300.jpg",
+  "Mushroom Biryani": "/assets/generated/mushroom-biryani.dim_400x300.jpg",
+
+  // ── Pulav variants ──
+  "Veg Pulav": "/assets/generated/veg-pulav.dim_400x300.jpg",
+  "Paneer Pulav": "/assets/generated/paneer-pulav.dim_400x300.jpg",
+
+  // ── Rice dishes ──
+  "Mini Thali": "/assets/generated/mini-thali.dim_400x300.jpg",
+  "Veg Thali": "/assets/generated/veg-thali.dim_400x300.jpg",
+  "Dal Rice": "/assets/generated/dal-rice.dim_400x300.jpg",
+  "Sambar Rice": "/assets/generated/sambar-rice.dim_400x300.jpg",
+  "Lemon Rice": "/assets/generated/lemon-rice.dim_400x300.jpg",
+  "Curd Rice": "/assets/generated/curd-rice.dim_400x300.jpg",
+  "Masala Rice": "/assets/generated/masala-rice.dim_400x300.jpg",
+  "Chapati Bhaji": "/assets/generated/chapati-bhaji.dim_400x300.jpg",
+  "Dal Khichdi": "/assets/generated/dal-khichdi.dim_400x300.jpg",
+  "Dal Khichadi": "/assets/generated/dal-khichdi.dim_400x300.jpg",
+  "Dal Khichdi Tadka": "/assets/generated/dal-khichdi-tadka.dim_400x300.jpg",
+  "Rasam Rice": "/assets/generated/rasam-rice.dim_400x300.jpg",
+
+  // ── Fried Rice variants ──
+  "Veg Fried Rice": "/assets/generated/veg-fried-rice.dim_400x300.jpg",
+  "Schezwan Fried Rice":
+    "/assets/generated/schezwan-fried-rice.dim_400x300.jpg",
+  "Hong Kong Fried Rice":
+    "/assets/generated/hong-kong-fried-rice.dim_400x300.jpg",
+  "Paneer Fried Rice": "/assets/generated/paneer-fried-rice.dim_400x300.jpg",
+  "Veg Manchurian Fried Rice":
+    "/assets/generated/veg-manchurian-fried-rice.dim_400x300.jpg",
+
+  // ── Noodles variants ──
+  "Veg Hakka Noodles": "/assets/generated/veg-hakka-noodles.dim_400x300.jpg",
+  "Veg Schezwan Noodles":
+    "/assets/generated/veg-schezwan-noodles.dim_400x300.jpg",
+  "Hong Kong Noodles": "/assets/generated/hong-kong-noodles.dim_400x300.jpg",
+  "Triple Schezwan Noodles":
+    "/assets/generated/triple-schezwan-noodles.dim_400x300.jpg",
+
+  // ── Drinks / Lassi ──
+  "Sweet Lassi": "/assets/generated/sweet-lassi.dim_400x300.jpg",
+  "Salted Lassi": "/assets/generated/salted-lassi.dim_400x300.jpg",
+  "Mango Lassi": "/assets/generated/mango-lassi.dim_400x300.jpg",
+  Buttermilk: "/assets/generated/buttermilk.dim_400x300.jpg",
+  "Fresh Lime Water": "/assets/generated/fresh-lime-water.dim_400x300.jpg",
+  "Fresh Lime Soda": "/assets/generated/fresh-lime-soda.dim_400x300.jpg",
+  "Ginger Lemon": "/assets/generated/ginger-lemon.dim_400x300.jpg",
+
+  // ── Juices ──
+  "Sugarcane Juice": "/assets/generated/sugarcane-juice.dim_400x300.jpg",
+  "Beetroot Juice": "/assets/generated/beetroot-juice.dim_400x300.jpg",
+  "Carrot Juice": "/assets/generated/carrot-juice.dim_400x300.jpg",
+  "Mosambi Juice": "/assets/generated/mosambi-juice.dim_400x300.jpg",
+  "Watermelon Juice": "/assets/generated/watermelon-juice.dim_400x300.jpg",
+  "Pineapple Juice": "/assets/generated/pineapple-juice.dim_400x300.jpg",
+
+  // ── Maggi ──
+  "Plain Masala Maggi": "/assets/generated/plain-masala-maggi.dim_400x300.jpg",
+  "Paneer Maggi": "/assets/generated/paneer-maggi.dim_400x300.jpg",
+
+  // ── Sandwiches (Babu's Classic) ──
+  "Veg Sandwich": "/assets/generated/veg-sandwich-plain.dim_400x300.jpg",
+  Sandwich: "/assets/generated/veg-sandwich.dim_400x300.jpg",
+  "Masala Toast Sandwich":
+    "/assets/generated/masala-toast-sandwich.dim_400x300.jpg",
+  "Bread Butter Toast": "/assets/generated/bread-butter-toast.dim_400x300.jpg",
+  "Veg Three Slice Sandwich":
+    "/assets/generated/veg-three-slice-sandwich.dim_400x300.jpg",
+  "Veg Cheese Sandwich":
+    "/assets/generated/veg-cheese-sandwich.dim_400x300.jpg",
+  "Veg Grill Sandwich": "/assets/generated/veg-grill-sandwich.dim_400x300.jpg",
+  "Paneer Cheese Grill Sandwich":
+    "/assets/generated/paneer-cheese-grill-sandwich.dim_400x300.jpg",
+  "Samosa Veg Sandwich":
+    "/assets/generated/samosa-veg-sandwich.dim_400x300.jpg",
+  "Samosa Toast Sandwich":
+    "/assets/generated/samosa-toast-sandwich.dim_400x300.jpg",
+
+  // ── Pizzas ──
+  "Veg Cheese Pizza": "/assets/generated/veg-cheese-pizza.dim_400x300.jpg",
+  "Veg Masala Pizza": "/assets/generated/veg-masala-pizza.dim_400x300.jpg",
+  "Chilly Corn Pizza": "/assets/generated/chilly-corn-pizza.dim_400x300.jpg",
+  "Mushroom Pizza": "/assets/generated/mushroom-pizza.dim_400x300.jpg",
+  "Veg Paneer Pizza": "/assets/generated/veg-paneer-pizza.dim_400x300.jpg",
+
+  // ── Burgers ──
+  "Veg Burger": "/assets/generated/veg-burger.dim_400x300.jpg",
+  "Veg Cheese Burger": "/assets/generated/veg-cheese-burger.dim_400x300.jpg",
+  "Schezwan Cheese Burger":
+    "/assets/generated/schezwan-cheese-burger.dim_400x300.jpg",
+
+  // ── Other ──
+  Samosa: "/assets/generated/samosa.dim_400x300.jpg",
+  Patty: "/assets/generated/veg-burger.dim_400x300.jpg",
+};
+
+function getMenuItemImage(name: string): string {
+  // Exact match first
+  if (ITEM_IMAGE_MAP[name]) return ITEM_IMAGE_MAP[name];
+
+  // Fallback: keyword matching for any unlisted items
   const lower = name.toLowerCase();
-  if (lower.includes("dosa")) return "🫓";
-  if (lower.includes("idli")) return "🍚";
-  if (lower.includes("vada") || lower.includes("wada")) return "🍩";
-  if (
-    lower.includes("upma") ||
-    lower.includes("poha") ||
-    lower.includes("khichdi") ||
-    lower.includes("khichadi")
-  )
-    return "🥣";
-  if (lower.includes("puri") || lower.includes("bhaji")) return "🍛";
-  if (lower.includes("thali")) return "🍽️";
-  if (lower.includes("biryani")) return "🍲";
-  if (lower.includes("rice")) return "🍚";
-  if (lower.includes("noodle")) return "🍜";
-  if (lower.includes("pizza")) return "🍕";
-  if (lower.includes("burger")) return "🍔";
-  if (lower.includes("sandwich")) return "🥪";
-  if (lower.includes("lassi")) return "🥛";
-  if (lower.includes("juice")) return "🧃";
-  if (lower.includes("tea") || lower.includes("chai")) return "☕";
-  if (lower.includes("coffee")) return "☕";
-  if (lower.includes("samosa")) return "🥟";
-  if (lower.includes("vada pav") || lower.includes("wada pav")) return "🍔";
-  if (lower.includes("pav") || lower.includes("bhaji")) return "🍞";
-  if (lower.includes("maggi")) return "🍜";
-  if (lower.includes("pulav") || lower.includes("pulao")) return "🍲";
-  if (lower.includes("chapati") || lower.includes("roti")) return "🫓";
-  if (lower.includes("sheera")) return "🍮";
-  if (lower.includes("sabudana")) return "🥣";
-  if (lower.includes("misal") || lower.includes("usal")) return "🍛";
-  if (
-    lower.includes("lime") ||
-    lower.includes("lemon") ||
-    lower.includes("ginger")
-  )
-    return "🍋";
-  if (lower.includes("buttermilk")) return "🥛";
-  if (
-    lower.includes("sugar") ||
-    lower.includes("beet") ||
-    lower.includes("carrot") ||
-    lower.includes("watermelon") ||
-    lower.includes("pineapple") ||
-    lower.includes("mosambi")
-  )
-    return "🧃";
-  return "🍴";
+  if (lower.includes("idli")) return "/assets/generated/idli.dim_400x300.jpg";
+  if (lower.includes("dosa")) return "/assets/generated/dosa.dim_400x300.jpg";
+  if (lower.includes("uttap") || lower.includes("uthap"))
+    return "/assets/generated/uttapam.dim_400x300.jpg";
+  if (lower.includes("vada") || lower.includes("wada"))
+    return "/assets/generated/medu-vada.dim_400x300.jpg";
+  if (lower.includes("biryani"))
+    return "/assets/generated/veg-biryani.dim_400x300.jpg";
+  if (lower.includes("pulav") || lower.includes("pulao"))
+    return "/assets/generated/veg-pulav.dim_400x300.jpg";
+  if (lower.includes("fried rice"))
+    return "/assets/generated/veg-fried-rice.dim_400x300.jpg";
+  if (lower.includes("noodle"))
+    return "/assets/generated/veg-noodles.dim_400x300.jpg";
+  if (lower.includes("thali"))
+    return "/assets/generated/veg-thali.dim_400x300.jpg";
+  if (lower.includes("lassi")) return "/assets/generated/lassi.dim_400x300.jpg";
+  if (lower.includes("juice")) return "/assets/generated/juice.dim_400x300.jpg";
+  if (lower.includes("pizza"))
+    return "/assets/generated/veg-pizza.dim_400x300.jpg";
+  if (lower.includes("burger"))
+    return "/assets/generated/veg-burger.dim_400x300.jpg";
+  if (lower.includes("sandwich") || lower.includes("toast"))
+    return "/assets/generated/veg-sandwich.dim_400x300.jpg";
+  if (lower.includes("maggi")) return "/assets/generated/maggi.dim_400x300.jpg";
+  if (lower.includes("samosa"))
+    return "/assets/generated/samosa.dim_400x300.jpg";
+  if (lower.includes("poha")) return "/assets/generated/poha.dim_400x300.jpg";
+  if (lower.includes("upma")) return "/assets/generated/upma.dim_400x300.jpg";
+  if (lower.includes("sheera"))
+    return "/assets/generated/sheera.dim_400x300.jpg";
+  if (lower.includes("rice"))
+    return "/assets/generated/sambar-rice.dim_400x300.jpg";
+  if (lower.includes("pav"))
+    return "/assets/generated/pav-bhaji.dim_400x300.jpg";
+  return "/assets/generated/veg-thali.dim_400x300.jpg";
 }
 
 const isAdminRoute = window.location.pathname === "/admin";
@@ -583,8 +753,8 @@ function MainApp() {
                       Please select a restaurant to view the menu
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Choose from Ruchi Cafe, Anna Cafe, Local Shop, or Babu's
-                      Classic
+                      Choose from Ruchi Cafe, Anna Cafe, Local Shop, or
+                      Babu&apos;s Classic
                     </p>
                   </div>
                 ) : (
@@ -606,24 +776,19 @@ function MainApp() {
                       {(restaurantMenus[selectedRestaurant] ?? []).map(
                         (item, idx) => {
                           const cartItem = getRestaurantCartItem(item.id);
-                          const emoji = getMenuItemEmoji(item.name);
                           return (
                             <div
                               key={item.id}
                               className="group bg-card border border-border rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover hover:-translate-y-1 hover:border-accent/30 transition-[transform,box-shadow,border-color] duration-300 cursor-pointer"
                               data-ocid={`breakfast.item.${idx + 1}`}
                             >
-                              {/* Emoji image area — richer gradient */}
-                              <div className="h-32 menu-card-header flex items-center justify-center relative overflow-hidden">
-                                <span
-                                  className="text-5xl group-hover:scale-110 transition-transform duration-300 ease-out select-none"
-                                  style={{
-                                    filter:
-                                      "drop-shadow(0 2px 8px rgba(0,0,0,0.12))",
-                                  }}
-                                >
-                                  {emoji}
-                                </span>
+                              {/* Real food image */}
+                              <div className="relative h-32 overflow-hidden bg-muted">
+                                <img
+                                  src={getMenuItemImage(item.name)}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 ease-out"
+                                />
                               </div>
                               <div className="p-4">
                                 <p className="font-display font-semibold text-sm text-foreground leading-tight mb-1.5 line-clamp-2">
@@ -742,24 +907,19 @@ function MainApp() {
                       {(lunchMenus[selectedLunchRestaurant] ?? []).map(
                         (item, idx) => {
                           const cartItem = getLunchCartItem(item.id);
-                          const emoji = getMenuItemEmoji(item.name);
                           return (
                             <div
                               key={item.id}
                               className="group bg-card border border-border rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover hover:-translate-y-1 hover:border-accent/30 transition-[transform,box-shadow,border-color] duration-300 cursor-pointer"
                               data-ocid={`lunch.item.${idx + 1}`}
                             >
-                              {/* Emoji image area — richer gradient */}
-                              <div className="h-32 menu-card-header flex items-center justify-center relative overflow-hidden">
-                                <span
-                                  className="text-5xl group-hover:scale-110 transition-transform duration-300 ease-out select-none"
-                                  style={{
-                                    filter:
-                                      "drop-shadow(0 2px 8px rgba(0,0,0,0.12))",
-                                  }}
-                                >
-                                  {emoji}
-                                </span>
+                              {/* Real food image */}
+                              <div className="relative h-32 overflow-hidden bg-muted">
+                                <img
+                                  src={getMenuItemImage(item.name)}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 ease-out"
+                                />
                               </div>
                               <div className="p-4">
                                 <p className="font-display font-semibold text-sm text-foreground leading-tight mb-1.5 line-clamp-2">
