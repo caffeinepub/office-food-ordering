@@ -542,143 +542,91 @@ function MainApp() {
         </div>
       </header>
 
-      {/* Hero — richer visual with floating food accents */}
+      {/* Hero — food-focused with image background */}
       <section
-        className="relative overflow-hidden bg-primary text-primary-foreground"
+        className="relative overflow-hidden min-h-[420px] flex items-center"
         style={{
-          background:
-            "linear-gradient(135deg, oklch(0.22 0.16 258) 0%, oklch(0.32 0.14 258) 60%, oklch(0.35 0.13 275) 100%)",
+          backgroundImage:
+            'url("/assets/generated/hero-food-bg.dim_1400x600.jpg")',
+          backgroundSize: "cover",
+          backgroundPosition: "center",
         }}
       >
-        {/* Decorative background circles */}
+        {/* Dark overlay gradient */}
         <div
-          className="absolute -top-8 -right-8 w-48 h-48 rounded-full opacity-10"
-          style={{ background: "oklch(0.68 0.21 42)" }}
-        />
-        <div
-          className="absolute top-4 right-20 w-24 h-24 rounded-full opacity-5"
-          style={{ background: "oklch(0.68 0.21 42)" }}
-        />
-        <div
-          className="absolute -bottom-4 left-1/3 w-32 h-32 rounded-full opacity-8"
-          style={{ background: "oklch(0.5 0.18 280)" }}
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(135deg, oklch(0.15 0.16 258 / 0.92) 0%, oklch(0.25 0.14 258 / 0.85) 100%)",
+          }}
         />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 md:py-14 relative">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-12 md:py-16 w-full">
+          <div className="flex items-center justify-between gap-8">
+            {/* Left column — text content */}
+            <div className="flex-1 max-w-xl">
+              {/* Heading */}
               <motion.h1
-                initial={{ opacity: 0, y: 12 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="font-display text-2xl sm:text-3xl md:text-4xl font-bold leading-tight"
+                transition={{ duration: 0.45 }}
+                className="font-display text-3xl sm:text-4xl md:text-5xl font-bold leading-tight text-white"
               >
-                Fresh food,
+                Fresh food{" "}
+                <span style={{ color: "oklch(0.80 0.18 42)" }}>delivered</span>
                 <br />
-                <span style={{ color: "oklch(0.80 0.18 42)" }}>
-                  delivered to your desk.
-                </span>
+                to your desk
               </motion.h1>
-              <motion.p
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.1 }}
-                className="mt-3 text-sm text-primary-foreground/70 max-w-xs"
-              >
-                Browse our daily menu, place your order, and enjoy a hot meal at
-                your workspace.
-              </motion.p>
-              {/* Quick stats */}
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.2 }}
-                className="flex items-center gap-4 mt-5"
-              >
-                <div className="flex items-center gap-1.5 text-xs text-primary-foreground/80">
-                  <span
-                    className="w-2 h-2 rounded-full"
-                    style={{ background: "oklch(0.72 0.19 140)" }}
-                  />
-                  4 Restaurants
-                </div>
-                <div className="flex items-center gap-1.5 text-xs text-primary-foreground/80">
-                  <span
-                    className="w-2 h-2 rounded-full"
-                    style={{ background: "oklch(0.80 0.18 42)" }}
-                  />
-                  Daily Fresh Menu
-                </div>
-                <div className="flex items-center gap-1.5 text-xs text-primary-foreground/80">
-                  <span
-                    className="w-2 h-2 rounded-full"
-                    style={{ background: "oklch(0.68 0.18 230)" }}
-                  />
-                  UPI Payments
-                </div>
-              </motion.div>
-            </div>
 
-            {/* Floating food emojis - decorative */}
+              {/* Subheading */}
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, delay: 0.1 }}
+                className="mt-4 text-base text-white/70 max-w-md leading-relaxed"
+              >
+                Order breakfast, lunch &amp; snacks from multiple restaurants —
+                fresh to your desk every day.
+              </motion.p>
+            </div>
+            {/* Right column — floating food emoji cards (hidden on mobile) */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
+              initial={{ opacity: 0, scale: 0.85 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.15 }}
-              className="hidden sm:flex flex-col gap-3 items-end shrink-0 select-none"
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="hidden md:grid grid-cols-2 gap-4 shrink-0 select-none"
               aria-hidden="true"
             >
-              <div className="flex gap-3">
-                <span
-                  className="text-3xl food-float"
-                  style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))" }}
-                >
-                  🍛
-                </span>
-                <span
-                  className="text-3xl food-float food-float-delay-1"
-                  style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))" }}
-                >
-                  🫓
-                </span>
-              </div>
-              <div className="flex gap-3">
-                <span
-                  className="text-3xl food-float food-float-delay-2"
-                  style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))" }}
-                >
-                  🍲
-                </span>
-                <span
-                  className="text-3xl food-float food-float-delay-3"
-                  style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))" }}
-                >
-                  🥗
-                </span>
-              </div>
-              <div className="flex gap-3">
-                <span
-                  className="text-3xl food-float food-float-delay-4"
-                  style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))" }}
-                >
-                  🧃
-                </span>
-                <span
-                  className="text-3xl food-float"
+              {[
+                { emoji: "🍛", delay: "0s" },
+                { emoji: "🥗", delay: "0.6s" },
+                { emoji: "🌮", delay: "1.2s" },
+                { emoji: "🍱", delay: "1.8s" },
+              ].map(({ emoji, delay }) => (
+                <div
+                  key={emoji}
+                  className="w-24 h-24 rounded-2xl flex items-center justify-center text-4xl food-float"
                   style={{
-                    filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))",
-                    animationDelay: "2.5s",
+                    background: "rgba(255,255,255,0.10)",
+                    backdropFilter: "blur(12px)",
+                    border: "1px solid rgba(255,255,255,0.18)",
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
+                    animationDelay: delay,
                   }}
                 >
-                  ☕
-                </span>
-              </div>
+                  {emoji}
+                </div>
+              ))}
             </motion.div>
           </div>
         </div>
       </section>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-8">
+      <main
+        id="menu-section"
+        className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-8"
+      >
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Menu Column */}
           <div className="flex-1 min-w-0">
