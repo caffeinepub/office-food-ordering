@@ -614,7 +614,7 @@ function MainApp() {
     setFormErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (_paymentScreenshot?: string) => {
     const errors: Partial<OrderForm> = {};
     if (!form.name.trim()) errors.name = "Name is required";
     if (!form.department.trim()) errors.department = "Department is required";

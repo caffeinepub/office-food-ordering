@@ -1,6 +1,13 @@
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, QrCode, Receipt, ShoppingBag } from "lucide-react";
-import { useState } from "react";
+import {
+  ArrowLeft,
+  QrCode,
+  Receipt,
+  ShoppingBag,
+  Upload,
+  X,
+} from "lucide-react";
+import { useRef, useState } from "react";
 import type { CartItem, OrderForm, RestaurantCartItem } from "../types";
 
 interface OrderSidebarProps {
@@ -9,7 +16,7 @@ interface OrderSidebarProps {
   selectedRestaurant: string;
   form: OrderForm;
   onFormChange: (field: keyof OrderForm, value: string) => void;
-  onSubmit: () => void;
+  onSubmit: (paymentScreenshot: string) => void;
   formErrors: Partial<OrderForm>;
   submitted: boolean;
   onBack?: () => void;
@@ -28,7 +35,13 @@ export function OrderSidebar({
 }: OrderSidebarProps) {
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [paymentError, setPaymentError] = useState(false);
+  const [screenshotError, setScreenshotError] = useState(false);
   const [qrError, setQrError] = useState(false);
+  const [paymentScreenshot, setPaymentScreenshot] = useState<string | null>(
+    null,
+  );
+  const [screenshotName, setScreenshotName] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const regularSubtotal = cartItems.reduce(
     (sum, ci) => sum + ci.item.price * ci.quantity,
@@ -43,13 +56,44 @@ export function OrderSidebar({
     cartItems.reduce((s, ci) => s + ci.quantity, 0) +
     restaurantCartItems.reduce((s, ci) => s + ci.quantity, 0);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setPaymentScreenshot(ev.target?.result as string);
+      setScreenshotName(file.name);
+      setScreenshotError(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveScreenshot = () => {
+    setPaymentScreenshot(null);
+    setScreenshotName(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   const handleSubmitClick = () => {
+    let hasError = false;
+
+    if (!paymentScreenshot) {
+      setScreenshotError(true);
+      hasError = true;
+    } else {
+      setScreenshotError(false);
+    }
+
     if (!paymentConfirmed) {
       setPaymentError(true);
-      return;
+      hasError = true;
+    } else {
+      setPaymentError(false);
     }
-    setPaymentError(false);
-    onSubmit();
+
+    if (hasError) return;
+
+    onSubmit(paymentScreenshot!);
   };
 
   return (
@@ -314,12 +358,26 @@ export function OrderSidebar({
       <div
         className="rounded-2xl border-2 shadow-card p-5"
         style={{
-          borderColor: "oklch(0.78 0.10 42)",
+          borderColor: "#ef4444",
           background:
             "linear-gradient(160deg, oklch(0.995 0.005 55) 0%, oklch(0.975 0.018 42) 100%)",
         }}
         data-ocid="order.payment_section"
       >
+        {/* ── Warning Banner ──────────────────────────────────────────────── */}
+        <div
+          className="flex items-center gap-2.5 rounded-xl px-4 py-3 mb-4"
+          style={{
+            background: "linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%)",
+            border: "1.5px solid #f97316",
+          }}
+        >
+          <span className="text-lg leading-none shrink-0">⚠️</span>
+          <p className="text-sm font-semibold" style={{ color: "#c2410c" }}>
+            Payment proof required before placing order
+          </p>
+        </div>
+
         {/* Payment header */}
         <div className="flex items-center gap-2.5 mb-4">
           <div
@@ -421,7 +479,7 @@ export function OrderSidebar({
 
         {/* Amount due */}
         <div
-          className="flex justify-between items-center rounded-xl px-4 py-4 mb-4"
+          className="flex justify-between items-center rounded-xl px-4 py-4 mb-5"
           style={{
             background:
               "linear-gradient(135deg, oklch(0.96 0.05 45) 0%, oklch(0.985 0.02 45) 100%)",
@@ -440,6 +498,116 @@ export function OrderSidebar({
           >
             ₹{total}
           </span>
+        </div>
+
+        {/* ── Upload Payment Screenshot ─────────────────────────────────── */}
+        <div className="mb-4">
+          <label
+            htmlFor="payment-screenshot-input"
+            className="block text-xs font-semibold mb-1.5"
+            style={{ color: "oklch(0.30 0.09 42)" }}
+          >
+            Upload Payment Screenshot <span className="text-red-500">*</span>
+          </label>
+
+          {!paymentScreenshot ? (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className={`w-full flex flex-col items-center justify-center gap-2 py-5 rounded-xl border-2 border-dashed transition-all cursor-pointer ${
+                screenshotError
+                  ? "border-red-400 bg-red-50"
+                  : "border-gray-300 bg-white hover:border-orange-400 hover:bg-orange-50"
+              }`}
+              data-ocid="order.payment_screenshot.upload_button"
+            >
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center"
+                style={{
+                  background: screenshotError
+                    ? "#fee2e2"
+                    : "oklch(0.95 0.03 45)",
+                }}
+              >
+                <Upload
+                  className="w-5 h-5"
+                  style={{
+                    color: screenshotError ? "#ef4444" : "oklch(0.60 0.15 45)",
+                  }}
+                />
+              </div>
+              <div className="text-center">
+                <p
+                  className="text-sm font-semibold"
+                  style={{
+                    color: screenshotError ? "#b91c1c" : "oklch(0.35 0.09 42)",
+                  }}
+                >
+                  Tap to upload screenshot
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  JPG or PNG only
+                </p>
+              </div>
+            </button>
+          ) : (
+            <div
+              className="rounded-xl border-2 overflow-hidden"
+              style={{ borderColor: "oklch(0.70 0.18 45)" }}
+            >
+              <div
+                className="flex items-center justify-between px-3 py-2"
+                style={{ background: "oklch(0.96 0.05 45)" }}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <div
+                    className="w-6 h-6 rounded-md flex items-center justify-center shrink-0"
+                    style={{ background: "oklch(0.70 0.18 45)" }}
+                  >
+                    <Upload className="w-3 h-3 text-white" />
+                  </div>
+                  <span
+                    className="text-xs font-semibold truncate"
+                    style={{ color: "oklch(0.30 0.10 42)" }}
+                  >
+                    {screenshotName}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveScreenshot}
+                  className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 hover:bg-red-100 transition-colors"
+                  data-ocid="order.payment_screenshot.remove_button"
+                >
+                  <X className="w-3.5 h-3.5 text-red-500" />
+                </button>
+              </div>
+              <img
+                src={paymentScreenshot}
+                alt="Payment screenshot preview"
+                className="w-full max-h-48 object-contain bg-white"
+              />
+            </div>
+          )}
+
+          <input
+            ref={fileInputRef}
+            id="payment-screenshot-input"
+            type="file"
+            accept="image/jpeg,image/png,image/jpg"
+            className="hidden"
+            onChange={handleFileChange}
+            data-ocid="order.payment_screenshot.file_input"
+          />
+
+          {screenshotError && (
+            <p
+              className="text-xs text-red-600 mt-1.5 font-medium"
+              data-ocid="order.payment_screenshot.error_state"
+            >
+              Please upload payment screenshot
+            </p>
+          )}
         </div>
 
         {/* Confirmation checkbox */}
@@ -477,7 +645,7 @@ export function OrderSidebar({
             className="text-xs text-red-600 mt-1.5 text-center font-medium"
             data-ocid="order.payment.error_state"
           >
-            Please confirm payment before placing your order
+            Please confirm payment
           </p>
         )}
       </div>
@@ -496,12 +664,10 @@ export function OrderSidebar({
         <button
           type="button"
           onClick={handleSubmitClick}
-          disabled={!paymentConfirmed}
-          className="w-full py-4 font-black text-base rounded-2xl transition-all duration-200 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-lg hover:enabled:shadow-xl hover:enabled:brightness-105"
+          className="w-full py-4 font-black text-base rounded-2xl transition-all duration-200 active:scale-[0.98] shadow-lg hover:enabled:shadow-xl hover:enabled:brightness-105"
           style={{
-            background: paymentConfirmed
-              ? "linear-gradient(135deg, oklch(0.64 0.19 45) 0%, oklch(0.72 0.20 45) 100%)"
-              : "oklch(0.78 0.08 45)",
+            background:
+              "linear-gradient(135deg, oklch(0.64 0.19 45) 0%, oklch(0.72 0.20 45) 100%)",
             color: "white",
           }}
           data-ocid="order.submit_button"
